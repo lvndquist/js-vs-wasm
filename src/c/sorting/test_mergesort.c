@@ -36,6 +36,14 @@ static void print_array(int *arr, int n, int edge) {
 
 int main(int argc, char *argv[]) {
     int n = 20;
+    int range = 1000000;
+
+    if (argc == 2) {
+        n = atoi(argv[1]);
+    } else if (argc == 3) {
+        n = atoi(argv[1]);
+        range = atoi(argv[2]);
+    }
 
     int *arr = (int *)malloc(n * sizeof(int));
     if (arr == NULL) {
@@ -45,7 +53,7 @@ int main(int argc, char *argv[]) {
 
     srand((unsigned int)time(NULL));
     for (int i = 0; i < n; i++) {
-        arr[i] = rand() % 100000;
+        arr[i] = rand() % range;
     }
 
     printf("Input  (%d elements): ", n);
