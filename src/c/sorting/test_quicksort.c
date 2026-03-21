@@ -1,9 +1,9 @@
-/* Merge sort testing */
+/* Quick sort testing */
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
-void merge_sort(int *arr, int n);
+void quick_sort(int *arr, int n);
 
 static int is_sorted(int *arr, int n) {
     for (int i = 0; i < n - 1; i++) {
@@ -57,13 +57,13 @@ int main(int argc, char *argv[]) {
     }
 
     printf("------------\n");
-    printf("Mergesort\n");
+    printf("Quick sort\n");
     printf("------------\n");
 
     printf("Input  (%d elements): ", n);
     print_array(arr, n, 3);
 
-    merge_sort(arr, n);
+    quick_sort(arr, n);
 
     printf("Output (%d elements): ", n);
     print_array(arr, n, 3);

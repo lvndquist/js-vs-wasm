@@ -45,6 +45,9 @@ static void merge_sort_rec(int *arr, int left, int right) {
     merge(arr, left, mid, right);
 }
 
+/*
+ * Merge sort entrypoint
+ */
 void merge_sort(int *arr, int n) {
     if (n <= 1 || arr == NULL) return;
     merge_sort_rec(arr, 0, n - 1);
