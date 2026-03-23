@@ -2,39 +2,43 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include "../utils/utils.h"
 
 void quick_sort(int *arr, int n);
 
-static int is_sorted(int *arr, int n) {
-    for (int i = 0; i < n - 1; i++) {
-        if (arr[i] > arr[i + 1]) return 0;
-    }
-    return 1;
-}
-
-static void print_array(int *arr, int n, int edge) {
-    if (n <= edge * 2) {
-        printf("[");
-        for (int i = 0; i < n; i++) {
-            printf("%d%s", arr[i], i < n - 1 ? ", " : "");
-        }
-        printf("]\n");
-        return;
-    }
-
-    int hidden = n - edge * 2;
-    printf("[");
-    for (int i = 0; i < edge; i++) {
-        printf("%d, ", arr[i]);
-    }
-    printf("... %d more ..., ", hidden);
-    for (int i = n - edge; i < n; i++) {
-        printf("%d%s", arr[i], i < n - 1 ? ", " : "");
-    }
-    printf("]\n");
-}
-
 int main(int argc, char *argv[]) {
+    const char *pathType = "small"; // default to small
+
+    if (argc >= 2) pathType = argv[1];
+
+    char path[256];
+    snprintf(path, sizeof(path), "../../../datasets/sorting/%s.bin", pathType);
+
+    int n;
+    int *original = load_sort_data(path, &n);
+    int *arr      = copy_array(original, n);
+
+    printf("------------\n");
+    printf("Quick sort\n");
+    printf("------------\n");
+
+    printf("Dataset: %s\n", path);
+    printf("Input   (%d elements): ", n);
+    print_array(original, n, 3);
+
+    quick_sort(arr, n);
+
+    printf("Output  (%d elements): ", n);
+    print_array(arr, n, 3);
+
+    printf("%s\n", is_sorted(arr, n) ? "OK" : "FAIL");
+
+    free(original);
+    free(arr);
+    return 0;
+}
+
+int main_random_data(int argc, char *argv[]) {
     int n = 20;
     int range = 1000000;
 

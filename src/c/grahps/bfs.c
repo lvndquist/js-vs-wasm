@@ -20,7 +20,7 @@ Graph *graph_create(int num_nodes) {
     return g;
 }
 
-void add_edge(Graph *g, int from, int to) {
+void graph_add_edge(Graph *g, int from, int to) {
     Edge *e = (Edge *)malloc(sizeof(Edge));
     e->to = to;
     e->next = g->heads[from];

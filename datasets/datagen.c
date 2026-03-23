@@ -130,6 +130,59 @@ static void generate_graphs(unsigned int seed) {
 }
 
 /* ---------------------------
+ * Weighted graph datasets
+ * --------------------------- */
+
+typedef struct {
+    int    from;
+    int    to;
+    double weight;
+} WeightedEdge;
+
+static void generate_weighted_graphs(unsigned int seed) {
+    make_dir("graphs_weighted");
+
+    for (int s = 0; s < GRAPH_COUNT; s++) {
+        int n         = GRAPH_NODES[s];
+        int per_node  = GRAPH_EDGES_PER[s];
+        int num_edges = n * per_node;
+
+        char path[256];
+        snprintf(path, sizeof(path), "graphs_weighted/%s.bin", GRAPH_NAMES[s]);
+
+        printf("Generating graphs_weighted/%s.bin (%d nodes, %d edges)...\n",
+               GRAPH_NAMES[s], n, num_edges);
+
+        WeightedEdge *edges = (WeightedEdge *)malloc(num_edges * sizeof(WeightedEdge));
+        if (edges == NULL) { fprintf(stderr, "malloc failed\n"); exit(1); }
+
+        srand(seed + 300 + s);
+
+        int index = 0;
+        for (int i = 0; i < n - 1 && index < num_edges; i++) {
+            edges[index].from   = i;
+            edges[index].to     = i + 1;
+            edges[index].weight = 1.0;
+            index++;
+        }
+
+        while (index < num_edges) {
+            edges[index].from   = rand() % n;
+            edges[index].to     = rand() % n;
+            edges[index].weight = 1.0 + ((double)rand() / RAND_MAX) * 99.0;
+            index++;
+        }
+
+        FILE *f = open_file(path);
+        fwrite(&n,         sizeof(int),          1,         f);
+        fwrite(&num_edges, sizeof(int),          1,         f);
+        fwrite(edges,      sizeof(WeightedEdge), num_edges, f);
+        fclose(f);
+        free(edges);
+    }
+}
+
+/* ---------------------------
  * Matrix datasets
  * --------------------------- */
 
@@ -173,6 +226,9 @@ int main(void) {
 
     printf("\nGraph datasets:\n");
     generate_graphs(seed);
+
+    printf("\nWeighted graph datasets:\n");
+    generate_weighted_graphs(seed);
 
     printf("\nMatrix datasets:\n");
     generate_matrix(seed);
