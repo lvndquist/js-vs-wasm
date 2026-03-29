@@ -1,10 +1,8 @@
-/*
-import { mergesort } from './algorithms/mergesort.js';
-import { quicksort } from './algorithms/quicksort.js';
-import { bfs }       from './algorithms/bfs.js';
-import { dijkstra }  from './algorithms/dijkstra.js';
-import { matmul }    from './algorithms/matmul.js';
-*/
+import { mergesort } from '../../src/js/mergesort.js';
+import { quicksort } from '../../src/js/quicksort.js';
+import { bfs }       from '../../src/js/bfs.js';
+import { dijkstra }  from '../../src/js/dijkstra.js';
+import { matrixMultiplication }    from '../../src/js/matrix_multiplication.js';
 
 /* -------------------------
  * Config
@@ -149,4 +147,44 @@ export async function runAllBenchmarks(onProgress) {
         results.push({ algorithm: 'dijkstra', implementation: 'js', size, times: dijkstraTimes });
     }
 
+    // Matrix multiplication
+    for (const size of SIZES) {
+        onProgress(`Loading matrix data. Size: ${size}...`);
+        const { n, A, B } = await loadMatrixData(size);
+
+        onProgress(`Running matrix multiplication on ${size}...`);
+        const matrixMultiplicationTimes = runBenchmark(() => {
+            matrixMultiplication(A, B, n);
+        });
+        results.push({ algorithm: 'matrix_multiplication', implementation: 'js', size, times: matrixMultiplicationTimes });
+    }
+
+    return results;
+
+}
+
+export function initBench() {
+    const startButton  = document.getElementById('start-button');
+    const exportButton = document.getElementById('export-button');
+    const status    = document.getElementById('status');
+
+    let csvData = null;
+
+    startBtn.addEventListener('click', async () => {
+        startButton.disabled  = true;
+        exportButton.disabled = true;
+        status.textContent = 'Starting...';
+
+        const results = await runSuite((msg) => {
+            status.textContent = msg;
+        });
+
+        csvData = buildCSV(results);
+        status.textContent = 'Done.';
+        exportButton.disabled = false;
+    });
+
+    exportButton.addEventListener('click', () => {
+        if (csvData) downloadCSV(csvData);
+    });
 }

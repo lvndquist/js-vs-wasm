@@ -10,7 +10,7 @@ static void swap(int *a, int *b) {
 }
 
 /*
- * Partitions arr[left .. right] around the last element.
+ * Partitions arr[left .. right] around the last element
  * Returns the final pivot index
  */
 static int partition(int *arr, int left, int right) {

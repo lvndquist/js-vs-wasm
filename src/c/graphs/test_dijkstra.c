@@ -35,8 +35,8 @@ int main(int argc, char *argv[]) {
     snprintf(path, sizeof(path), "../../../datasets/graphs_weighted/%s.bin", size);
 
     WeightedGraphData *gd = load_weighted_graph_data(path);
-    printf("Dataset : %s\n", path);
-    printf("Loaded  : %d nodes, %d edges\n", gd->num_nodes, gd->num_edges);
+    printf("Dataset: %s\n", path);
+    printf("Loaded: %d nodes, %d edges\n", gd->num_nodes, gd->num_edges);
 
     WeightedGraph *g = build_graph(gd);
 

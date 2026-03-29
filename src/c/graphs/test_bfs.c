@@ -34,8 +34,8 @@ int main(int argc, char *argv[]) {
     snprintf(path, sizeof(path), "../../../datasets/graphs/%s.bin", pathType);
 
     GraphData *gd = load_graph_data(path);
-    printf("Dataset : %s\n", path);
-    printf("Loaded  : %d nodes, %d edges\n", gd->num_nodes, gd->num_edges);
+    printf("Dataset: %s\n", path);
+    printf("Loaded: %d nodes, %d edges\n", gd->num_nodes, gd->num_edges);
 
     Graph *g = build_graph(gd);
 
