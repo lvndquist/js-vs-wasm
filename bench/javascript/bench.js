@@ -1,8 +1,8 @@
-import { mergesort } from '../../src/js/mergesort.js';
-import { quicksort } from '../../src/js/quicksort.js';
-import { bfs }       from '../../src/js/bfs.js';
-import { dijkstra }  from '../../src/js/dijkstra.js';
-import { matrixMultiplication }    from '../../src/js/matrix_multiplication.js';
+import { merge_sort } from "../../src/js/sorting/mergesort.mjs";
+import { quick_sort } from "../../src/js/sorting/quicksort.mjs";
+import { bfs }       from "../../src/js/graphs/bfs.mjs";
+import { dijkstra }  from "../../src/js/graphs/dijkstra.mjs";
+import { matrix_multiplication } from "../../src/js/numeric/matrix_multiplication.mjs";
 
 /* -------------------------
  * Config
@@ -110,7 +110,7 @@ export async function runAllBenchmarks(onProgress) {
         onProgress(`Running mergesort on ${size}...`);
         const mergesortTimes = runBenchmark(() => {
             const copy = arr.slice();
-            mergesort(copy, 0, copy.length - 1);
+            merge_sort(copy, 0, copy.length - 1);
         });
         results.push({ algorithm: 'mergesort', implementation: 'js', size, times: mergesortTimes });
 
@@ -118,7 +118,7 @@ export async function runAllBenchmarks(onProgress) {
         onProgress(`Running quicksort on ${size}...`);
         const quicksortTimes = runBenchmark(() => {
             const copy = arr.slice();
-            quicksort(copy, 0, copy.length - 1);
+            quick_sort(copy, 0, copy.length - 1);
         });
         results.push({ algorithm: 'quicksort', implementation: 'js', size, times: quicksortTimes });
     }
@@ -154,7 +154,7 @@ export async function runAllBenchmarks(onProgress) {
 
         onProgress(`Running matrix multiplication on ${size}...`);
         const matrixMultiplicationTimes = runBenchmark(() => {
-            matrixMultiplication(A, B, n);
+            matrix_multiplication(A, B, n);
         });
         results.push({ algorithm: 'matrix_multiplication', implementation: 'js', size, times: matrixMultiplicationTimes });
     }
@@ -170,12 +170,12 @@ export function initBench() {
 
     let csvData = null;
 
-    startBtn.addEventListener('click', async () => {
+    startButton.addEventListener('click', async () => {
         startButton.disabled  = true;
         exportButton.disabled = true;
         status.textContent = 'Starting...';
 
-        const results = await runSuite((msg) => {
+        const results = await runAllBenchmarks((msg) => {
             status.textContent = msg;
         });
 
