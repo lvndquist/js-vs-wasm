@@ -8,6 +8,8 @@
  * Config
  * --------------------------- */
 
+static const unsigned int SEED = 10;
+
 /* Sorting sizes (number of ints) */
 static const int SORT_SIZES[]   = { 1000, 100000, 1000000, 10000000 };
 static const char *SORT_NAMES[] = { "small", "medium", "large", "very_large" };
@@ -105,7 +107,6 @@ static void generate_graphs(unsigned int seed) {
 
         srand(seed + 100 + s);
 
-        /* 0->1, 1->2, 2->3, ... (n-1) edges */
         int index = 0;
         for (int i = 0; i < n - 1 && index < num_edges; i++) {
             edges[index].from = i;
@@ -196,7 +197,7 @@ static void generate_matrix(unsigned int seed) {
         char path[256];
         snprintf(path, sizeof(path), "matrix/%s.bin", MATRIX_NAMES[s]);
 
-        printf("  Generating matrix/%s.bin (%dx%d matrices)...\n",
+        printf("Generating matrix/%s.bin (%dx%d matrices)...\n",
                MATRIX_NAMES[s], n, n);
 
         double *mat = (double *)malloc(2 * elements * sizeof(double));
@@ -216,22 +217,20 @@ static void generate_matrix(unsigned int seed) {
 }
 
 int main(void) {
-    /* fixed seed */
-    unsigned int seed = 42;
 
-    printf("Generating datasets with seed %u...\n\n", seed);
+    printf("Generating datasets with seed %u...\n\n", SEED);
 
     printf("Sorting datasets:\n");
-    generate_sorting(seed);
+    generate_sorting(SEED);
 
     printf("\nGraph datasets:\n");
-    generate_graphs(seed);
+    generate_graphs(SEED);
 
     printf("\nWeighted graph datasets:\n");
-    generate_weighted_graphs(seed);
+    generate_weighted_graphs(SEED);
 
     printf("\nMatrix datasets:\n");
-    generate_matrix(seed);
+    generate_matrix(SEED);
 
     printf("\nDone. All datasets written/\n");
     return 0;
