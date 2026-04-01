@@ -19,18 +19,18 @@ async function loadSortData(size) {
     const buffer = await res.arrayBuffer();
     const view   = new DataView(buffer);
     const n      = view.getInt32(0, true);
-    const arr    = new Int32Array(buffer, 4, n);
+    const arr    = new Int32Array(buffer.slice(4), 0, n);
     return { n, arr };
 }
 
 async function loadGraphData(size) {
-    const res         = await fetch(`${DATA_ROOT}/graphs/${size}.bin`);
-    const buffer      = await res.arrayBuffer();
-    const view        = new DataView(buffer);
-    const numOfNodes  = view.getInt32(0, true);
-    const numOfEdges  = view.getInt32(4, true);
-    const from        = new Int32Array(buffer, 8, numOfEdges);
-    const to          = new Int32Array(buffer, 8 + numOfEdges * 4, numOfEdges);
+    const res        = await fetch(`${DATA_ROOT}/graphs/${size}.bin`);
+    const buffer     = await res.arrayBuffer();
+    const view       = new DataView(buffer);
+    const numOfNodes = view.getInt32(0, true);
+    const numOfEdges = view.getInt32(4, true);
+    const from       = new Int32Array(buffer.slice(8), 0, numOfEdges);
+    const to         = new Int32Array(buffer.slice(8 + numOfEdges * 4), 0, numOfEdges);
     return { numOfNodes, numOfEdges, from, to };
 }
 
@@ -60,13 +60,13 @@ async function loadMatrixData(size) {
     const buffer = await res.arrayBuffer();
     const view   = new DataView(buffer);
     const n      = view.getInt32(0, true);
-    const A      = new Float64Array(buffer, 4,              n * n);
-    const B      = new Float64Array(buffer, 4 + n * n * 8, n * n);
+    const A      = new Float64Array(buffer.slice(4), 0, n * n);
+    const B      = new Float64Array(buffer.slice(4 + n * n * 8), 0, n * n);
     return { n, A, B };
 }
 
 function runBenchmark(func) {
-    for (let i = 0; i < WARMUP_RUNS; i++) fn();
+    for (let i = 0; i < WARMUP_RUNS; i++) func();
 
     const times = [];
     for (let i = 0; i < TIMED_RUNS; i++) {
