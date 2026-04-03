@@ -3,9 +3,9 @@ const INFINITY = 1e18;
 
 class MinHeap {
     constructor(capacity) {
-        this.nodes  = new Int32Array(capacity);
-        this.dists  = new Float64Array(capacity);
-        this.size   = 0;
+        this.nodes = new Int32Array(capacity);
+        this.dists = new Float64Array(capacity);
+        this.size = 0;
     }
 
     push(node, dist) {
@@ -30,9 +30,9 @@ class MinHeap {
 
         let i = 0;
         while (true) {
-            const left     = 2 * i + 1;
-            const right    = 2 * i + 2;
-            let smallest   = i;
+            const left = 2 * i + 1;
+            const right = 2 * i + 2;
+            let smallest = i;
 
             if (left  < this.size && this.dists[left]  < this.dists[smallest]) smallest = left;
             if (right < this.size && this.dists[right] < this.dists[smallest]) smallest = right;
@@ -46,28 +46,20 @@ class MinHeap {
     }
 
     _swap(i, j) {
-        const tmpNode  = this.nodes[i];
-        const tmpDist  = this.dists[i];
-        this.nodes[i]  = this.nodes[j];
-        this.dists[i]  = this.dists[j];
-        this.nodes[j]  = tmpNode;
-        this.dists[j]  = tmpDist;
+        const tmpNode = this.nodes[i];
+        const tmpDist = this.dists[i];
+        this.nodes[i] = this.nodes[j];
+        this.dists[i] = this.dists[j];
+        this.nodes[j] = tmpNode;
+        this.dists[j] = tmpDist;
     }
 }
 
-export function dijkstra(graphData, source) {
-    const { numOfNodes, numOfEdges, from, to, weight } = graphData;
+export function dijkstra(graphData, source, dist, visited) {
+    const { numOfEdges, heads } = graphData;
 
-    const heads = new Array(numOfNodes);
-    for (let i = 0; i < numOfNodes; i++) heads[i] = [];
-
-    for (let i = 0; i < numOfEdges; i++) {
-        heads[from[i]].push({ to: to[i], weight: weight[i] });
-    }
-
-    const dist    = new Float64Array(numOfNodes).fill(INFINITY);
-    const visited = new Int32Array(numOfNodes);
-
+    dist.fill(INFINITY);
+    visited.fill(0);
     dist[source] = 0.0;
 
     const heap = new MinHeap(numOfEdges + 1);
@@ -75,7 +67,6 @@ export function dijkstra(graphData, source) {
 
     while (heap.size > 0) {
         const { node: u, dist: d } = heap.pop();
-
         if (visited[u]) continue;
         visited[u] = 1;
 

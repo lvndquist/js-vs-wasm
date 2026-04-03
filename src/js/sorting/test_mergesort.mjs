@@ -7,11 +7,11 @@ const size = process.argv[2] || 'small';
 const path = `../../../datasets/sorting/${size}.bin`;
 
 const buffer = readFileSync(path);
-const n      = buffer.readInt32LE(0);
-const arr    = new Int32Array(buffer.buffer, buffer.byteOffset + 4, n);
+const n = buffer.readInt32LE(0);
+const arr = new Int32Array(buffer.buffer, buffer.byteOffset + 4, n);
 
 const original = arr.slice();
-const sorted   = arr.slice();
+const sorted = arr.slice();
 
 merge_sort(sorted, sorted.length);
 

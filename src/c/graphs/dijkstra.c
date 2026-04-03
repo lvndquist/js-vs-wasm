@@ -118,7 +118,7 @@ static HeapNode heap_pop(MinHeap *h) {
 
 /*
  * Computes shortest paths from source to all nodes.
- *   dist[x]    = shortest distance from source to node x
+ *   dist[x] = shortest distance from source to node x
  *   visited[x] = 1 if node x is finalized
  *
  */
