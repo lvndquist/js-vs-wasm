@@ -4,6 +4,13 @@ import { bfs } from "../../src/js/graphs/bfs.mjs";
 import { dijkstra } from "../../src/js/graphs/dijkstra.mjs";
 import { matrix_multiplication } from "../../src/js/numeric/matrix_multiplication.mjs";
 
+import createMergeSortModule from "../../src/wasm/sorting/mergesort.mjs";
+import createQuickSortModule from "../../src/wasm/sorting/quicksort.mjs";
+import createBFSModule from "../../src/wasm/graphs/bfs.mjs";
+import createDijkstraModule from "../../src/wasm/graphs/dijkstra.mjs";
+import createMatrixModule from "../../src/wasm/numeric/matrix_multiplication.mjs";
+
+
 /* -------------------------
  * Config
  * ------------------------- */
@@ -13,6 +20,30 @@ const TIMED_RUNS = 30;
 const DATA_ROOT = '../../datasets';
 
 const SIZES = ['small', 'medium', 'large', 'very_large'];
+
+async function initWasm() {
+    const [
+        mergeSortModule,
+        quickSortModule,
+        bfsModule,
+        dijkstraModule,
+        matrixModule,
+    ] = await Promise.all([
+        createMergeSortModule(),
+        createQuickSortModule(),
+        createBFSModule(),
+        createDijkstraModule(),
+        createMatrixModule()
+    ]);
+
+    return {
+        mergeSortModule,
+        quickSortModule,
+        bfsModule,
+        dijkstraModule,
+        matrixModule
+    };
+}
 
 async function loadSortData(size) {
     const res = await fetch(`${DATA_ROOT}/sorting/${size}.bin`);
@@ -104,42 +135,59 @@ function downloadCSV(csv) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'js-results.csv';
+    a.download = 'results.csv';
     a.click();
     URL.revokeObjectURL(url);
 }
 
 export async function runAllBenchmarks() {
     const results = [];
-    let start = null;
-    let end = null;
+    let startTotal = null;
+    let endTotal = null;
+
+    console.log("Loadin WASM modules");
+    const wasm = await initWasm();
+
     // Sorting
     for (const size of SIZES) {
         console.log(`Loading sorting data. Size: ${size}...`);
         const {_, arr} = await loadSortData(size);
 
         // run mergesort
-        console.log(`Running mergesort on ${size}...`);
-        start = performance.now();
-        const mergesortTimes = runBenchmark(() => {
+        console.log(`Running JS mergesort on ${size}...`);
+        startTotal = performance.now();
+        const mergesortJSTimes = runBenchmark(() => {
             const copy = arr.slice();
             merge_sort(copy, copy.length);
         });
         
-        end = performance.now();
-        results.push({ algorithm: 'mergesort', implementation: 'js', size, times: mergesortTimes });
-        console.log(`Size: ${size}. Total time: ${(end - start).toFixed(1)}ms`)
+        endTotal = performance.now();
+        results.push({ algorithm: 'mergesort', implementation: 'js', size, times: mergesortJSTimes });
+        console.log(`JS. Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`)
+
+        const ptr = wasm.mergeSortModule._malloc(arr.length * 4);
+        console.log(`Running WASM mergesort on ${size}...`);
+        startTotal = performance.now();
+        const mergesortWasmTimes = runBenchmark(() => {
+            const copy = arr.slice();
+            wasm.mergeSortModule.HEAP32.set(copy, ptr >> 2);
+            wasm.mergeSortModule._merge_sort(ptr, arr.length);
+        });
+        endTotal = performance.now();
+        wasm.mergeSortModule._free(ptr);
+        results.push({ algorithm: 'mergesort', implementation: 'wasm', size, times: mergesortWasmTimes });
+        console.log(`WASM. Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`);
 
         // run quicksort
-        console.log(`Running quicksort on ${size}...`);
-        start = performance.now();
+        console.log(`Running JS quicksort on ${size}...`);
+        startTotal = performance.now();
         const quicksortTimes = runBenchmark(() => {
             const copy = arr.slice();
             quick_sort(copy, copy.length);
         });
-        end = performance.now();
+        endTotal = performance.now();
         results.push({ algorithm: 'quicksort', implementation: 'js', size, times: quicksortTimes });
-        console.log(`Size: ${size}. Total time: ${(end - start).toFixed(1)}ms`);
+        console.log(`JS. Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`);
     }
 
     // Graphing (BFS)
@@ -148,13 +196,13 @@ export async function runAllBenchmarks() {
         const graphData = await loadGraphData(size);
 
         console.log(`Running bfs on ${size}...`);
-        start = performance.now();
+        startTotal = performance.now();
         const bfsTimes = runBenchmark(() => {
             bfs(graphData, 0);
         });
-        end = performance.now();
+        endTotal = performance.now();
         results.push({ algorithm: 'bfs', implementation: 'js', size, times: bfsTimes });
-        console.log(`Size: ${size}. Total time: ${(end - start).toFixed(1)}ms`);
+        console.log(`Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`);
     }
 
     // Graph (Dijkstra)
@@ -166,13 +214,13 @@ export async function runAllBenchmarks() {
         const dist = new Float64Array(weightedGraphData.numOfNodes);
         const visited = new Int32Array(weightedGraphData.numOfNodes);
 
-        start = performance.now();
+        startTotal = performance.now();
         const dijkstraTimes = runBenchmark(() => {
             dijkstra(weightedGraphData, 0, dist, visited);
         });
-        end = performance.now();
+        endTotal = performance.now();
         results.push({ algorithm: 'dijkstra', implementation: 'js', size, times: dijkstraTimes });
-        console.log(`Size: ${size}. Total time: ${(end - start).toFixed(1)}ms`);
+        console.log(`Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`);
     }
 
     // Matrix multiplication
@@ -181,13 +229,13 @@ export async function runAllBenchmarks() {
         const { n, A, B, C } = await loadMatrixData(size);
 
         console.log(`Running matrix multiplication on ${size}...`);
-        start = performance.now();
+        startTotal = performance.now();
         const matrixMultiplicationTimes = runBenchmark(() => {
             matrix_multiplication(A, B, C, n);
         });
-        end = performance.now();
+        endTotal = performance.now();
         results.push({ algorithm: 'matrix_multiplication', implementation: 'js', size, times: matrixMultiplicationTimes });
-        console.log(`Size: ${size}. Total time: ${(end - start).toFixed(1)}ms`);
+        console.log(`Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`);
     }
     
     console.log("Finished");
