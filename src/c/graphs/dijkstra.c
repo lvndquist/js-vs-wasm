@@ -24,9 +24,9 @@ WeightedGraph *weighted_graph_create(int num_nodes) {
 
 void weighted_graph_add_edge(WeightedGraph *g, int from, int to, double weight) {
     WeightedEdge *e = (WeightedEdge *)malloc(sizeof(WeightedEdge));
-    e->to     = to;
+    e->to = to;
     e->weight = weight;
-    e->next   = g->heads[from];
+    e->next = g->heads[from];
     g->heads[from] = e;
     g->num_edges++;
 }
@@ -49,20 +49,20 @@ void weighted_graph_free(WeightedGraph *g) {
  * ------------------------- */
 
 typedef struct {
-    int    node;
+    int node;
     double dist;
 } HeapNode;
 
 typedef struct {
     HeapNode *data;
-    int       size;
-    int       capacity;
+    int size;
+    int capacity;
 } MinHeap;
 
 static MinHeap *heap_create(int capacity) {
     MinHeap *h = (MinHeap *)malloc(sizeof(MinHeap));
-    h->data     = (HeapNode *)malloc(capacity * sizeof(HeapNode));
-    h->size     = 0;
+    h->data = (HeapNode *)malloc(capacity * sizeof(HeapNode));
+    h->size = 0;
     h->capacity = capacity;
     return h;
 }
@@ -74,8 +74,8 @@ static void heap_free(MinHeap *h) {
 
 static void heap_swap(MinHeap *h, int i, int j) {
     HeapNode tmp = h->data[i];
-    h->data[i]   = h->data[j];
-    h->data[j]   = tmp;
+    h->data[i] = h->data[j];
+    h->data[j] = tmp;
 }
 
 static void heap_push(MinHeap *h, int node, double dist) {
@@ -93,7 +93,7 @@ static void heap_push(MinHeap *h, int node, double dist) {
 
 static HeapNode heap_pop(MinHeap *h) {
     HeapNode min = h->data[0];
-    h->data[0]   = h->data[--h->size];
+    h->data[0] = h->data[--h->size];
 
     int i = 0;
     while (1) {
@@ -126,7 +126,7 @@ void dijkstra(const WeightedGraph *g, int source, double *dist, int *visited) {
     int n = g->num_nodes;
 
     for (int i = 0; i < n; i++) {
-        dist[i]    = INFINITY;
+        dist[i] = INFINITY;
         visited[i] = 0;
     }
 
@@ -137,13 +137,13 @@ void dijkstra(const WeightedGraph *g, int source, double *dist, int *visited) {
 
     while (heap->size > 0) {
         HeapNode cur = heap_pop(heap);
-        int u        = cur.node;
+        int u = cur.node;
 
         if (visited[u]) continue;
         visited[u] = 1;
 
         for (WeightedEdge *e = g->heads[u]; e != NULL; e = e->next) {
-            int v          = e->to;
+            int v = e->to;
             double new_dist = dist[u] + e->weight;
             if (new_dist < dist[v]) {
                 dist[v] = new_dist;

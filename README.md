@@ -1,6 +1,6 @@
 # Benchmarking
 
-A server is needed to access the benchmarking pages. This can be accieved using for instance pythons built-in http-server.
+A server is needed to access the benchmarking page. This can be accieved using for instance pythons built-in http-server.
 
 ```zsh
 python3 -m http.server 8080
@@ -132,3 +132,63 @@ gcc -O2 -o test_matrix_multiplication matrix_multiplication.c test_matrix_multip
 ```zsh
 node test_matrix_multiplication.mjs XX
 ```
+
+# WASM
+
+Compiling to WASM from C is done using Emscripten. 
+
+## Mergesort
+
+```zsh
+emcc "src/c/sorting/mergesort.c" -O2 -o "src/wasm/sorting/mergesort.js" \
+  -s EXPORTED_FUNCTIONS='["_merge_sort","_malloc","_free"]' \
+  -s EXPORTED_RUNTIME_METHODS='["HEAP32"]' \
+  -s MODULARIZE=1 \
+  -s EXPORT_NAME='createMergeSortModule' \
+  -s ALLOW_MEMORY_GROWTH=1
+```
+
+## Quicksort
+
+```zsh
+emcc "src/c/sorting/quicksort.c" -O2 -o "src/wasm/sorting/quicksort.js" \
+  -s EXPORTED_FUNCTIONS='["_quick_sort","_malloc","_free"]' \
+  -s EXPORTED_RUNTIME_METHODS='["HEAP32"]' \
+  -s MODULARIZE=1 \
+  -s EXPORT_NAME='createQuickSortModule' \
+  -s ALLOW_MEMORY_GROWTH=1
+```
+
+## BFS
+
+```zsh
+emcc "src/c/graphs/bfs.c" -O2 -o "src/wasm/graphs/bfs.js" \
+  -s EXPORTED_FUNCTIONS='["_bfs","_graph_create","_graph_add_edge","_graph_free","_malloc","_free"]' \
+  -s EXPORTED_RUNTIME_METHODS='["HEAP32"]' \
+  -s MODULARIZE=1 \
+  -s EXPORT_NAME='createBFSModule' \
+  -s ALLOW_MEMORY_GROWTH=1
+```
+
+## Dijkstra
+
+```zsh
+emcc "src/c/graphs/dijkstra.c" -O2 -o "src/wasm/graphs/dijkstra.js" \
+  -s EXPORTED_FUNCTIONS='["_dijkstra","_weighted_graph_create","_weighted_graph_add_edge","_weighted_graph_free","_malloc","_free"]' \
+  -s EXPORTED_RUNTIME_METHODS='["HEAP32","HEAPF64"]' \
+  -s MODULARIZE=1 \
+  -s EXPORT_NAME='createDijkstraModule' \
+  -s ALLOW_MEMORY_GROWTH=1
+```
+
+## Matrix multiplication
+
+```zsh
+emcc "src/c/numeric/matrix_multiplication.c" -O2 -o "src/wasm/numeric/matrix_multiplication.js" \
+  -s EXPORTED_FUNCTIONS='["_matrix_multiplication","_malloc","_free"]' \
+  -s EXPORTED_RUNTIME_METHODS='["HEAPF64"]' \
+  -s MODULARIZE=1 \
+  -s EXPORT_NAME='createMatrixModule' \
+  -s ALLOW_MEMORY_GROWTH=1
+```
+

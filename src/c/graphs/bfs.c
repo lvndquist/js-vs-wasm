@@ -68,3 +68,25 @@ void bfs(const Graph *g, int source, int *visited, int *dist) {
 
     free(queue);
 }
+
+/* Benchmark wrapper */
+
+Graph *bfs_build_graph(int num_nodes, int num_edges, int *from, int *to) {
+    Graph *g = graph_create(num_nodes);
+    for (int i = 0; i < num_edges; i++) {
+        graph_add_edge(g, from[i], to[i]);
+    }
+    return g;
+}
+
+void bfs_run(Graph *g, int source) {
+    int *visited = (int *)malloc(g->num_nodes * sizeof(int));
+    int *dist    = (int *)malloc(g->num_nodes * sizeof(int));
+    bfs(g, source, visited, dist);
+    free(visited);
+    free(dist);
+}
+
+void bfs_free_graph(Graph *g) {
+    graph_free(g);
+}
