@@ -1,46 +1,56 @@
 #include <stdlib.h>
-
 #define INFINITY 1e18
 
-typedef struct WeightedEdge {
-    int to;
-    double weight;
-    struct WeightedEdge *next;
-} WeightedEdge;
-
 typedef struct {
-    WeightedEdge **heads;
+    int *neighbors;
+    double *weights;
+    int *offsets;
+    int *counts;
     int num_nodes;
     int num_edges;
 } WeightedGraph;
 
 WeightedGraph *weighted_graph_create(int num_nodes) {
     WeightedGraph *g = (WeightedGraph *)malloc(sizeof(WeightedGraph));
-    g->heads = (WeightedEdge **)calloc(num_nodes, sizeof(WeightedEdge *));
+    g->counts = (int *)calloc(num_nodes, sizeof(int));
+    g->offsets = (int *)calloc(num_nodes + 1, sizeof(int));
+    g->neighbors = NULL;
+    g->weights = NULL;
     g->num_nodes = num_nodes;
     g->num_edges = 0;
     return g;
 }
 
-void weighted_graph_add_edge(WeightedGraph *g, int from, int to, double weight) {
-    WeightedEdge *e = (WeightedEdge *)malloc(sizeof(WeightedEdge));
-    e->to = to;
-    e->weight = weight;
-    e->next = g->heads[from];
-    g->heads[from] = e;
-    g->num_edges++;
+void weighted_graph_build(WeightedGraph *g, int num_edges, int *from, int *to, double *weight) {
+    g->num_edges = num_edges;
+
+    for (int i = 0; i < num_edges; i++) {
+        g->counts[from[i]]++;
+    }
+
+    g->offsets[0] = 0;
+    for (int i = 0; i < g->num_nodes; i++) {
+        g->offsets[i + 1] = g->offsets[i] + g->counts[i];
+    }
+
+    g->neighbors = (int *)malloc(num_edges * sizeof(int));
+    g->weights = (double *)malloc(num_edges * sizeof(double));
+
+    int *cursor = (int *)calloc(g->num_nodes, sizeof(int));
+    for (int i = 0; i < num_edges; i++) {
+        int f = from[i];
+        int pos = g->offsets[f] + cursor[f]++;
+        g->neighbors[pos] = to[i];
+        g->weights[pos] = weight[i];
+    }
+    free(cursor);
 }
 
 void weighted_graph_free(WeightedGraph *g) {
-    for (int i = 0; i < g->num_nodes; i++) {
-        WeightedEdge *e = g->heads[i];
-        while (e != NULL) {
-            WeightedEdge *tmp = e->next;
-            free(e);
-            e = tmp;
-        }
-    }
-    free(g->heads);
+    free(g->neighbors);
+    free(g->weights);
+    free(g->offsets);
+    free(g->counts);
     free(g);
 }
 
@@ -101,8 +111,8 @@ static HeapNode heap_pop(MinHeap *h) {
         int right = 2 * i + 2;
         int smallest = i;
 
-        if (left  < h->size && h->data[left].dist  < h->data[smallest].dist) smallest = left;
-        if (right < h->size && h->data[right].dist < h->data[smallest].dist) smallest = right;
+        if (left < h->size && h->data[left].dist < h->data[smallest].dist) { smallest = left; }
+        if (right < h->size && h->data[right].dist < h->data[smallest].dist) { smallest = right; }
         if (smallest == i) break;
 
         heap_swap(h, i, smallest);
@@ -120,16 +130,13 @@ static HeapNode heap_pop(MinHeap *h) {
  * Computes shortest paths from source to all nodes.
  *   dist[x] = shortest distance from source to node x
  *   visited[x] = 1 if node x is finalized
- *
  */
 void dijkstra(const WeightedGraph *g, int source, double *dist, int *visited) {
     int n = g->num_nodes;
-
     for (int i = 0; i < n; i++) {
         dist[i] = INFINITY;
         visited[i] = 0;
     }
-
     dist[source] = 0.0;
 
     MinHeap *heap = heap_create(g->num_edges + 1);
@@ -138,19 +145,19 @@ void dijkstra(const WeightedGraph *g, int source, double *dist, int *visited) {
     while (heap->size > 0) {
         HeapNode cur = heap_pop(heap);
         int u = cur.node;
-
         if (visited[u]) continue;
         visited[u] = 1;
 
-        for (WeightedEdge *e = g->heads[u]; e != NULL; e = e->next) {
-            int v = e->to;
-            double new_dist = dist[u] + e->weight;
+        int start = g->offsets[u];
+        int end = g->offsets[u + 1];
+        for (int i = start; i < end; i++) {
+            int v = g->neighbors[i];
+            double new_dist = dist[u] + g->weights[i];
             if (new_dist < dist[v]) {
                 dist[v] = new_dist;
                 heap_push(heap, v, new_dist);
             }
         }
     }
-
     heap_free(heap);
 }

@@ -9,8 +9,13 @@ const numOfNodes = buffer.readInt32LE(0);
 const numOfEdges = buffer.readInt32LE(4);
 const from = new Int32Array(buffer.buffer, buffer.byteOffset + 8, numOfEdges);
 const to = new Int32Array(buffer.buffer, buffer.byteOffset + 8 + numOfEdges * 4, numOfEdges);
+const heads = Array.from({ length: numOfNodes }, () => []);
+for (let i = 0; i < numOfEdges; i++) {
+    heads[from[i]].push(to[i]);
+}
 
-const graphData = { numOfNodes, numOfEdges, from, to };
+
+const graphData = { numOfNodes, numOfEdges, from, to, heads };
 
 const { visited, dist } = bfs(graphData, 0);
 

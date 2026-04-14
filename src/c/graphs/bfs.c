@@ -1,49 +1,53 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct Edge {
-    int to;
-    struct Edge *next;
-} Edge;
-
 typedef struct {
-    Edge **heads;
+    int *neighbors;
+    int *offsets;
+    int *counts;
     int num_nodes;
     int num_edges;
 } Graph;
 
 Graph *graph_create(int num_nodes) {
     Graph *g = (Graph *)malloc(sizeof(Graph));
-    g->heads = (Edge **)calloc(num_nodes, sizeof(Edge *));
+    g->offsets = (int *)calloc(num_nodes + 1, sizeof(int));
+    g->counts = (int *)calloc(num_nodes, sizeof(int));
+    g->neighbors = NULL;
     g->num_nodes = num_nodes;
     g->num_edges = 0;
     return g;
 }
 
-void graph_add_edge(Graph *g, int from, int to) {
-    Edge *e = (Edge *)malloc(sizeof(Edge));
-    e->to = to;
-    e->next = g->heads[from];
-    g->heads[from] = e;
-    g->num_edges++;
+void graph_build(Graph *g, int num_edges, int *from, int *to) {
+    g->num_edges = num_edges;
+
+    for (int i = 0; i < num_edges; i++)
+        g->counts[from[i]]++;
+
+    g->offsets[0] = 0;
+    for (int i = 0; i < g->num_nodes; i++)
+        g->offsets[i + 1] = g->offsets[i] + g->counts[i];
+
+    g->neighbors = (int *)malloc(num_edges * sizeof(int));
+
+    int *cursor = (int *)calloc(g->num_nodes, sizeof(int));
+    for (int i = 0; i < num_edges; i++) {
+        int f = from[i];
+        g->neighbors[g->offsets[f] + cursor[f]++] = to[i];
+    }
+    free(cursor);
 }
 
 void graph_free(Graph *g) {
-    for (int i = 0; i < g->num_nodes; i++) {
-        Edge *e = g->heads[i];
-        while (e != NULL) {
-            Edge *tmp = e->next;
-            free(e);
-            e = tmp;
-        }
-    }
-    free(g->heads);
+    free(g->neighbors);
+    free(g->offsets);
+    free(g->counts);
     free(g);
 }
 
 void bfs(const Graph *g, int source, int *visited, int *dist) {
     int n = g->num_nodes;
-
     memset(visited, 0, n * sizeof(int));
     for (int i = 0; i < n; i++) dist[i] = -1;
 
@@ -56,37 +60,16 @@ void bfs(const Graph *g, int source, int *visited, int *dist) {
 
     while (head < tail) {
         int node = queue[head++];
-
-        for (Edge *e = g->heads[node]; e != NULL; e = e->next) {
-            if (!visited[e->to]) {
-                visited[e->to] = 1;
-                dist[e->to] = dist[node] + 1;
-                queue[tail++] = e->to;
+        int start = g->offsets[node];
+        int end = g->offsets[node + 1];
+        for (int i = start; i < end; i++) {
+            int nb = g->neighbors[i];
+            if (!visited[nb]) {
+                visited[nb] = 1;
+                dist[nb] = dist[node] + 1;
+                queue[tail++] = nb;
             }
         }
     }
-
     free(queue);
-}
-
-/* Benchmark wrapper */
-
-Graph *bfs_build_graph(int num_nodes, int num_edges, int *from, int *to) {
-    Graph *g = graph_create(num_nodes);
-    for (int i = 0; i < num_edges; i++) {
-        graph_add_edge(g, from[i], to[i]);
-    }
-    return g;
-}
-
-void bfs_run(Graph *g, int source) {
-    int *visited = (int *)malloc(g->num_nodes * sizeof(int));
-    int *dist    = (int *)malloc(g->num_nodes * sizeof(int));
-    bfs(g, source, visited, dist);
-    free(visited);
-    free(dist);
-}
-
-void bfs_free_graph(Graph *g) {
-    graph_free(g);
 }

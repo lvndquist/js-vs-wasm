@@ -14,15 +14,12 @@ typedef struct {
 } Graph;
 
 Graph *graph_create(int num_nodes);
-void   graph_add_edge(Graph *g, int from, int to);
 void   graph_free(Graph *g);
 void   bfs(const Graph *g, int source, int *visited, int *dist);
 
 static Graph *build_graph(const GraphData *gd) {
     Graph *g = graph_create(gd->num_nodes);
-    for (int i = 0; i < gd->num_edges; i++) {
-        graph_add_edge(g, gd->from[i], gd->to[i]);
-    }
+    graph_build(g, gd->num_edges, gd->from, gd->to);
     return g;
 }
 

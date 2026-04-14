@@ -15,15 +15,13 @@ typedef struct {
 } WeightedGraph;
 
 WeightedGraph *weighted_graph_create(int num_nodes);
-void    weighted_graph_add_edge(WeightedGraph *g, int from, int to, double weight);
-void    weighted_graph_free(WeightedGraph *g);
-void    dijkstra(const WeightedGraph *g, int source, double *dist, int *visited);
+void weighted_graph_build(WeightedGraph *g, int num_edges, int *from, int *to, double *weight);
+void weighted_graph_free(WeightedGraph *g);
+void dijkstra(const WeightedGraph *g, int source, double *dist, int *visited);
 
 static WeightedGraph *build_graph(const WeightedGraphData *gd) {
     WeightedGraph *g = weighted_graph_create(gd->num_nodes);
-    for (int i = 0; i < gd->num_edges; i++) {
-        weighted_graph_add_edge(g, gd->from[i], gd->to[i], gd->weight[i]);
-    }
+    weighted_graph_build(g, gd->num_edges, gd->from, gd->to, gd->weight);
     return g;
 }
 
@@ -40,9 +38,8 @@ int main(int argc, char *argv[]) {
 
     WeightedGraph *g = build_graph(gd);
 
-    double *dist    = (double *)malloc(g->num_nodes * sizeof(double));
-    int    *visited = (int *)malloc(g->num_nodes * sizeof(int));
-
+    double *dist = (double *)malloc(g->num_nodes * sizeof(double));
+    int *visited = (int *)malloc(g->num_nodes * sizeof(int));
     dijkstra(g, 0, dist, visited);
 
     /* Count reachable nodes and find max distance */

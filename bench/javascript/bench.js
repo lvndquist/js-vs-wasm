@@ -4,11 +4,11 @@ import { bfs } from "../../src/js/graphs/bfs.mjs";
 import { dijkstra } from "../../src/js/graphs/dijkstra.mjs";
 import { matrix_multiplication } from "../../src/js/numeric/matrix_multiplication.mjs";
 
-import createMergeSortModule from "../../src/wasm/sorting/mergesort.mjs";
-import createQuickSortModule from "../../src/wasm/sorting/quicksort.mjs";
-import createBFSModule from "../../src/wasm/graphs/bfs.mjs";
-import createDijkstraModule from "../../src/wasm/graphs/dijkstra.mjs";
-import createMatrixModule from "../../src/wasm/numeric/matrix_multiplication.mjs";
+import { createMergeSortModule } from "../../src/wasm/sorting/mergesort.mjs";
+import { createQuickSortModule } from "../../src/wasm/sorting/quicksort.mjs";
+import { createBFSModule } from "../../src/wasm/graphs/bfs.mjs";
+import { createDijkstraModule } from "../../src/wasm/graphs/dijkstra.mjs";
+import { createMatrixModule } from "../../src/wasm/numeric/matrix_multiplication.mjs";
 
 
 /* -------------------------
@@ -165,7 +165,7 @@ export async function runAllBenchmarks() {
         results.push({ algorithm: 'mergesort', implementation: 'js', size, times: mergesortJSTimes });
         console.log(`JS. Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`)
 
-        const ptr = wasm.mergeSortModule._malloc(arr.length * 4);
+        let ptr = wasm.mergeSortModule._malloc(arr.length * 4);
         console.log(`Running WASM mergesort on ${size}...`);
         startTotal = performance.now();
         const mergesortWasmTimes = runBenchmark(() => {
@@ -188,6 +188,20 @@ export async function runAllBenchmarks() {
         endTotal = performance.now();
         results.push({ algorithm: 'quicksort', implementation: 'js', size, times: quicksortTimes });
         console.log(`JS. Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`);
+
+        pointer = wasm.mergeSortModule._malloc(arr.length * 4);
+        console.log(`Running WASM mergesort on ${size}...`);
+        startTotal = performance.now();
+        const quicksortWasmTimes = runBenchmark(() => {
+            const copy = arr.slice();
+            wasm.quickSortModule.HEAP32.set(copy, pointer >> 2);
+            wasm.quickSortModule._quick_sort(pointer, arr.length);
+        });
+        endTotal = performance.now();
+        wasm.quickSortModule._free(pointer);
+        results.push({ algorithm: 'quicksort', implementation: 'wasm', size, times: quicksortWasmTimes });
+        console.log(`WASM. Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`);
+
     }
 
     // Graphing (BFS)
@@ -195,14 +209,40 @@ export async function runAllBenchmarks() {
         console.log(`Loading graph data. Size: ${size}...`);
         const graphData = await loadGraphData(size);
 
-        console.log(`Running bfs on ${size}...`);
+        console.log(`Running JS bfs on ${size}...`);
         startTotal = performance.now();
         const bfsTimes = runBenchmark(() => {
             bfs(graphData, 0);
         });
         endTotal = performance.now();
         results.push({ algorithm: 'bfs', implementation: 'js', size, times: bfsTimes });
-        console.log(`Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`);
+        console.log(`JS. Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`);
+
+        console.log(`Running WASM bfs on ${size}...`);
+        const { numOfNodes, numOfEdges, from, to } = graphData;
+        const fromPointer = wasm.bfsModule._malloc(numOfEdges * 4);
+        const toPointer = wasm.bfsModule._malloc(numOfEdges * 4);
+        wasm.bfsModule.HEAP32.set(from, fromPointer >> 2);
+        wasm.bfsModule.HEAP32.set(to, toPointer >> 2);
+
+        const g = wasm.bfsModule._graph_create(numOfNodes);
+        wasm.bfsModule._graph_build(g, numOfEdges, fromPointer, toPointer);
+
+        startTotal = performance.now();
+        const bfsWasmTimes = runBenchmark(() => {
+            const visitedPointer = wasm.bfsModule._malloc(numOfNodes * 4);
+            const distPointer = wasm.bfsModule._malloc(numOfNodes * 4);
+            wasm.bfsModule._bfs(g, 0, visitedPointer, distPointer);
+            wasm.bfsModule._free(visitedPointer);
+            wasm.bfsModule._free(distPointer);
+        });
+        endTotal = performance.now();
+
+        wasm.bfsModule._graph_free(g);
+        wasm.bfsModule._free(fromPointer);
+        wasm.bfsModule._free(toPointer);
+        results.push({ algorithm: 'bfs', implementation: 'wasm', size, times: bfsWasmTimes });
+        console.log(`WASM. Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`);
     }
 
     // Graph (Dijkstra)
@@ -210,7 +250,7 @@ export async function runAllBenchmarks() {
         console.log(`Loading weighted graph data. Size: ${size}...`);
         const weightedGraphData = await loadWeightedGraphData(size);
 
-        console.log(`Running dijkstra on ${size}...`);
+        console.log(`Running JS dijkstra on ${size}...`);
         const dist = new Float64Array(weightedGraphData.numOfNodes);
         const visited = new Int32Array(weightedGraphData.numOfNodes);
 
@@ -220,7 +260,33 @@ export async function runAllBenchmarks() {
         });
         endTotal = performance.now();
         results.push({ algorithm: 'dijkstra', implementation: 'js', size, times: dijkstraTimes });
-        console.log(`Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`);
+        console.log(`JS. Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`);
+
+        console.log(`Running WASM dijkstra on ${size}...`);
+        const { numOfNodes, numOfEdges, from, to } = graphData;
+        const fromPointer = wasm.dijkstraModule._malloc(numOfEdges * 4);
+        const toPointer = wasm.dijkstraModule._malloc(numOfEdges * 4);
+        wasm.dijkstraModule.HEAP64.set(from, fromPtr >> 2);
+        wasm.dijkstraModule.HEAP64.set(to, toPtr >> 2);
+
+        const g = wasm.dijkstraModule._graph_create(numOfNodes);
+        wasm.dijkstraModule._graph_build(g, numOfEdges, fromPointer, toPointer);
+
+        startTotal = performance.now();
+        const dijkstraWasmTimes = runBenchmark(() => {
+            const visitedPointer = wasm.dijkstraModule._malloc(numOfNodes * 4);
+            const distPointer    = wasm.dijkstraModule._malloc(numOfNodes * 4);
+            wasm.dijkstraModule._dijkstra(g, 0, visitedPointer, distPointer);
+            wasm.dijkstraModule._free(visitedPointer);
+            wasm.dijkstraModule._free(distPointer);
+        });
+        endTotal = performance.now();
+
+        wasm.dijkstraModule._graph_free(g);
+        wasm.dijkstraModule._free(fromPointer);
+        wasm.dijkstraModule._free(toPointer);
+        results.push({ algorithm: 'dijkstra', implementation: 'wasm', size, times: dijkstraWasmTimes });
+        console.log(`WASM. Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`);
     }
 
     // Matrix multiplication
@@ -228,14 +294,33 @@ export async function runAllBenchmarks() {
         console.log(`Loading matrix data. Size: ${size}...`);
         const { n, A, B, C } = await loadMatrixData(size);
 
-        console.log(`Running matrix multiplication on ${size}...`);
+        console.log(`Running JS matrix multiplication on ${size}...`);
         startTotal = performance.now();
         const matrixMultiplicationTimes = runBenchmark(() => {
             matrix_multiplication(A, B, C, n);
         });
         endTotal = performance.now();
         results.push({ algorithm: 'matrix_multiplication', implementation: 'js', size, times: matrixMultiplicationTimes });
-        console.log(`Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`);
+        console.log(`JS. Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`);
+
+        console.log(`Running WASM matrix multiplication on ${size}...`);
+        const aPointer = wasm.matrixModule._malloc(n * n * 8);
+        const bPointer = wasm.matrixModule._malloc(n * n * 8);
+        const cPointer = wasm.matrixModule._malloc(n * n * 8);
+        wasm.matrixModule.HEAPF64.set(A, aPointer >> 3);
+        wasm.matrixModule.HEAPF64.set(B, bPointer >> 3);
+
+        startTotal = performance.now();
+        const matrixMultiplicationWasmTimes = runBenchmark(() => {
+            wasm.matrixModule._matrix_multiplication(aPointer, bPointer, cPointer, n);
+        });
+        endTotal = performance.now();
+
+        wasm.matrixModule._free(aPointer);
+        wasm.matrixModule._free(bPointer);
+        wasm.matrixModule._free(cPointer);
+        results.push({ algorithm: 'matrix_multiplication', implementation: 'wasm', size, times: matrixMultiplicationWasmTimes });
+        console.log(`WASM. Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`);
     }
     
     console.log("Finished");
