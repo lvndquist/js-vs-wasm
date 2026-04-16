@@ -83,7 +83,7 @@ The C test files are run with gcc, and the Javascript test files are run with no
 ## Sorting
 ### Mergesort
 
-```
+```zsh
 gcc -O2 -o test_mergesort mergesort.c test_mergesort.c && ./test_mergesort XX
 ```
 
@@ -165,7 +165,7 @@ emcc "src/c/sorting/quicksort.c" -O2 -o "src/wasm/sorting/quicksort.mjs" \
 
 ```zsh
 emcc "src/c/graphs/bfs.c" -O2 -o "src/wasm/graphs/bfs.mjs" \
-  -s EXPORTED_FUNCTIONS='["_bfs","_graph_create","_graph_add_edge","_graph_free","_malloc","_free"]' \
+  -s EXPORTED_FUNCTIONS='["_bfs","_graph_create","_graph_build","_graph_free","_malloc","_free"]' \
   -s EXPORTED_RUNTIME_METHODS='["HEAP32"]' \
   -s MODULARIZE=1 \
   -s EXPORT_ES6=1 \
@@ -177,7 +177,7 @@ emcc "src/c/graphs/bfs.c" -O2 -o "src/wasm/graphs/bfs.mjs" \
 
 ```zsh
 emcc "src/c/graphs/dijkstra.c" -O2 -o "src/wasm/graphs/dijkstra.mjs" \
-  -s EXPORTED_FUNCTIONS='["_dijkstra","_weighted_graph_create","_weighted_graph_add_edge","_weighted_graph_free","_malloc","_free"]' \
+  -s EXPORTED_FUNCTIONS='["_dijkstra","_weighted_graph_create","_weighted_graph_build","_weighted_graph_free","_malloc","_free"]' \
   -s EXPORTED_RUNTIME_METHODS='["HEAP32","HEAPF64"]' \
   -s MODULARIZE=1 \
   -s EXPORT_ES6=1 \

@@ -1,13 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-
-typedef struct {
-    int *neighbors;
-    int *offsets;
-    int *counts;
-    int num_nodes;
-    int num_edges;
-} Graph;
+#include "bfs.h"
 
 Graph *graph_create(int num_nodes) {
     Graph *g = (Graph *)malloc(sizeof(Graph));

@@ -1,14 +1,5 @@
 #include <stdlib.h>
-#define INFINITY 1e18
-
-typedef struct {
-    int *neighbors;
-    double *weights;
-    int *offsets;
-    int *counts;
-    int num_nodes;
-    int num_edges;
-} WeightedGraph;
+#include "dijkstra.h"
 
 WeightedGraph *weighted_graph_create(int num_nodes) {
     WeightedGraph *g = (WeightedGraph *)malloc(sizeof(WeightedGraph));

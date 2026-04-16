@@ -1,23 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "../utils/utils.h"
-
-typedef struct WeightedEdge {
-    int to;
-    double weight;
-    struct WEdge *next;
-} WeightedEdge;
-
-typedef struct {
-    WeightedEdge **heads;
-    int num_nodes;
-    int num_edges;
-} WeightedGraph;
-
-WeightedGraph *weighted_graph_create(int num_nodes);
-void weighted_graph_build(WeightedGraph *g, int num_edges, int *from, int *to, double *weight);
-void weighted_graph_free(WeightedGraph *g);
-void dijkstra(const WeightedGraph *g, int source, double *dist, int *visited);
+#include "dijkstra.h"
 
 static WeightedGraph *build_graph(const WeightedGraphData *gd) {
     WeightedGraph *g = weighted_graph_create(gd->num_nodes);

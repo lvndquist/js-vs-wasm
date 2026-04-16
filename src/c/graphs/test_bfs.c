@@ -1,21 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "bfs.h"
 #include "../utils/utils.h"
-
-typedef struct Edge {
-    int to;
-    struct Edge *next;
-} Edge;
-
-typedef struct {
-    Edge **heads;
-    int num_nodes;
-    int num_edges;
-} Graph;
-
-Graph *graph_create(int num_nodes);
-void   graph_free(Graph *g);
-void   bfs(const Graph *g, int source, int *visited, int *dist);
 
 static Graph *build_graph(const GraphData *gd) {
     Graph *g = graph_create(gd->num_nodes);
