@@ -7,7 +7,7 @@ python3 -m http.server 8080
 ```
 The server should be started from the project root to be able to serve all needed files.
 
-Navigate to http://localhost:8080/bench/javascript/ or http://localhost:8080/bench/wasm/
+Navigate to http://localhost:8080/bench/javascript/
 
 ## JS
 
@@ -196,4 +196,3 @@ emcc "src/c/numeric/matrix_multiplication.c" -O2 -o "src/wasm/numeric/matrix_mul
   -s EXPORT_NAME='createMatrixModule' \
   -s ALLOW_MEMORY_GROWTH=1
 ```
-
