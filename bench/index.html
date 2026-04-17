@@ -55,14 +55,19 @@
             color: #444;
             min-height: 1.4rem;
         }
+
+        #cancel-button {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <h1>JS Benchmark</h1>
-    <p>Run all JS algorithms against all dataset sizes. Results as CSV</p>
+    <p>Run JS and WASM algorithms against all dataset sizes. Results as CSV</p>
 
     <div class="controls">
         <button id="start-button">Run benchmarks</button>
+        <button id="cancel-button">Cancel</button>
         <button id="export-button" disabled>Download CSV</button>
     </div>
 
