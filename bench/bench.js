@@ -125,7 +125,7 @@ function buildCSV(results) {
     const rows = ['algorithm,implementation,size,run,time_in_ms'];
     for (const {algorithm, implementation, size, times } of results) {
         times.forEach((t, i) => {
-            rows.push(`${algorithm},${implementation},${size},${i + 1},${t.toFixed(3)}`);
+            rows.push(`${algorithm},${implementation},${size},${i + 1},${t.toFixed(6)}`);
         });
     }
     return rows.join('\n');
@@ -362,7 +362,7 @@ export async function runAllBenchmarks() {
         console.log(`JS. Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`);
 
         pointer = wasm.quickSortModule._malloc(arr.length * 4);
-        console.log(`Running WASM mergesort on ${size}...`);
+        console.log(`Running WASM quicksort on ${size}...`);
         startTotal = performance.now();
         const quicksortWasmTimes = runBenchmark(() => {
             const copy = arr.slice();
