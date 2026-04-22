@@ -1,14 +1,5 @@
-import { merge_sort } from "../src/js/sorting/mergesort.mjs"
-import { quick_sort } from "../src/js/sorting/quicksort.mjs";
-import { bfs } from "../src/js/graphs/bfs.mjs";
-import { dijkstra } from "../src/js/graphs/dijkstra.mjs";
-import { matrix_multiplication } from "../src/js/numeric/matrix_multiplication.mjs";
-
-import createMergeSortModule from "../src/wasm/sorting/mergesort.mjs";
-import createQuickSortModule from "../src/wasm/sorting/quicksort.mjs";
-import createBFSModule from "../src/wasm/graphs/bfs.mjs";
-import createDijkstraModule from "../src/wasm/graphs/dijkstra.mjs";
 import createMatrixModule from "../src/wasm/numeric/matrix_multiplication.mjs";
+import createOverheadModule from "../src/wasm/overhead/overhead.mjs";
 
 /* -------------------------
  * Config
@@ -19,30 +10,22 @@ const TIMED_RUNS = 30;
 const DATA_ROOT = '../datasets';
 
 const SIZES = ['small', 'medium', 'large', 'very_large'];
+const CALL_COUNT = [1, 10, 100, 1000, 10000, 100000];
 
 let cancel = false;
 
 async function initWasm() {
     const [
-        mergeSortModule,
-        quickSortModule,
-        bfsModule,
-        dijkstraModule,
         matrixModule,
+        overheadModule
     ] = await Promise.all([
-        createMergeSortModule(),
-        createQuickSortModule(),
-        createBFSModule(),
-        createDijkstraModule(),
-        createMatrixModule()
+        createMatrixModule(),
+        createOverheadModule()
     ]);
 
     return {
-        mergeSortModule,
-        quickSortModule,
-        bfsModule,
-        dijkstraModule,
-        matrixModule
+        matrixModule,
+        overheadModule,
     };
 }
 
@@ -55,6 +38,38 @@ async function loadMatrixData(size) {
     const B = new Float64Array(buffer.slice(4 + n * n * 8), 0, n * n);
     const C = new Float64Array(n * n);
     return { n, A, B, C };
+}
+
+function noop(overheadModule, c) {
+    return runBenchmark(() => {
+        for (let i = 0; i < c; i++) {
+            overheadModule._noop();
+        }
+    });
+}
+
+function fullMatrix(matrixModule, a, b, c, n) {
+    return runBenchmark(() => {
+        matrixModule._matrix_multiplication(a, b, c, n);
+    });
+}
+
+function rowMatrix(overheadModule, a, b, c, n) {
+    return runBenchmark(() => {
+        for (let i = 0; i < n; i++) {
+            overheadModule._matrix_multiplication_row(a, b, c, i, n);
+        }
+    });
+}
+
+function cellMatrix(overheadModule, a, b, c, n) {
+    return runBenchmark(() => {
+        for (let i = 0; i < n; i++) {
+            for (let j = 0; j < n; j++) {
+                overheadModule._matrix_multiplication_cell(a, b, c, i, j, n);
+            }
+        }
+    });
 }
 
 function runBenchmark(func) {
@@ -91,7 +106,73 @@ function downloadCSV(csv) {
 }
 
 export async function runAllBenchmarks() {
+    const results = [];
+    cancel = false;
 
+    console.log("Loading WASM modules.");
+    const wasm = await initWasm();
+
+    console.log("Running no-op");
+    for (const c of CALL_COUNT) {
+        if (cancel) {
+            console.log("Cancelling..");
+            return results; 
+        }
+
+        console.log(`Running no-op count: ${c}`);
+        const times = noop(wasm.overheadModule, c);
+        results.push({ experiment: 'no-op', size: '-', call_count: c, times });
+        console.log("Done.");
+    }
+
+    for (const size of SIZES) {
+        if (cancel) { console.log("Cancelling."); return results; }
+
+        console.log(`Loading matrix data. Size: ${size}`);
+        const { n, A, B, C} = await loadMatrixData(size);
+
+        const a = wasm.matrixModule._malloc(n * n * 8);
+        const b = wasm.matrixModule._malloc(n * n * 8);
+        const c = wasm.matrixModule._malloc(n * n * 8);
+        wasm.matrixModule.HEAPF64.set(A, a >> 3);
+        wasm.matrixModule.HEAPF64.set(B, b >> 3);
+
+        if (!cancel) {
+            console.log(`Running full matrix multiplication on ${size}`);
+            const times = fullMatrix(wasm.matrixModule, a, b, c, n);
+            results.push({ experiment: 'full_matrix', size, call_count: 1, times});
+            console.log("Done.");
+        } else {
+            console.log("Cancelling..");
+            return results;
+        }
+
+        if (!cancel) {
+            console.log(`Running matrix multiplication by row (${n} calls) on ${size}`);
+            const times = rowMatrix(wasm.overheadModule, a, b, c, n);
+            results.push({ experiment: 'row_matrix', size, call_count: n, times});
+            console.log("Done.");
+        } else {
+            console.log("Cancelling..");
+            return results;
+        }
+
+        if (!cancel && (size === 'small' || size === 'medium')) {
+            console.log(`Running matrix multiplication by cell (${n * n} calls) on ${size}`);
+            const times = cellMatrix(wasm.overheadModule, a, b, c, n);
+            results.push({ experiment: 'cell_matrix', size, call_count: n * n, times});
+            console.log("Done.");
+        } else {
+            console.log("Cancelling..");
+            return results;
+        }
+        
+        wasm.matrixModule._free(a);
+        wasm.matrixModule._free(b);
+    }
+
+    console.log("Overhead benchmarks finished.");
+    return results;
 }
 
 export function initBench() {
