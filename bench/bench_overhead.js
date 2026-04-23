@@ -1,4 +1,3 @@
-import createMatrixModule from "../src/wasm/numeric/matrix_multiplication.mjs";
 import createOverheadModule from "../src/wasm/overhead/overhead.mjs";
 
 /* -------------------------
@@ -10,21 +9,25 @@ const TIMED_RUNS = 30;
 const DATA_ROOT = '../datasets';
 
 const SIZES = ['small', 'medium', 'large', 'very_large'];
-const CALL_COUNT = [1, 10, 100, 1000, 10000, 100000];
+const CALL_COUNT = [1, 10, 100, 1000, 10000, 100000, 1000000, 10000000];
 
 let cancel = false;
 
+function detectBrowser() {
+    const ua = navigator.userAgent;
+    if (ua.includes('Firefox')) return 'firefox';
+    if (ua.includes('Chrome')) return 'chrome';
+    return 'unknown';
+}
+
 async function initWasm() {
     const [
-        matrixModule,
         overheadModule
     ] = await Promise.all([
-        createMatrixModule(),
         createOverheadModule()
     ]);
 
     return {
-        matrixModule,
         overheadModule,
     };
 }
@@ -36,8 +39,7 @@ async function loadMatrixData(size) {
     const n = view.getInt32(0, true);
     const A = new Float64Array(buffer.slice(4), 0, n * n);
     const B = new Float64Array(buffer.slice(4 + n * n * 8), 0, n * n);
-    const C = new Float64Array(n * n);
-    return { n, A, B, C };
+    return { n, A, B};
 }
 
 function noop(overheadModule, c) {
@@ -48,9 +50,9 @@ function noop(overheadModule, c) {
     });
 }
 
-function fullMatrix(matrixModule, a, b, c, n) {
+function fullMatrix(overheadModule, a, b, c, n) {
     return runBenchmark(() => {
-        matrixModule._matrix_multiplication(a, b, c, n);
+        overheadModule._matrix_multiplication_full(a, b, c, n);
     });
 }
 
@@ -86,7 +88,7 @@ function runBenchmark(func) {
 }
 
 function buildCSV(results) {
-    const rows = ['experiment,size,run, call_count, time_in_ms'];
+    const rows = ['experiment,size,run,call_count,time_in_ms'];
     for (const {experiment, size, call_count, times} of results) {
         times.forEach((t, i) => {
             rows.push(`${experiment},${size},${i + 1},${call_count},${t.toFixed(6)}`);
@@ -96,11 +98,12 @@ function buildCSV(results) {
 }
 
 function downloadCSV(csv) {
+    const browser = detectBrowser();
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'results_overhead.csv';
+    a.download = `overhead_results_${browser}.csv`;
     a.click();
     URL.revokeObjectURL(url);
 }
@@ -129,17 +132,17 @@ export async function runAllBenchmarks() {
         if (cancel) { console.log("Cancelling."); return results; }
 
         console.log(`Loading matrix data. Size: ${size}`);
-        const { n, A, B, C} = await loadMatrixData(size);
+        const { n, A, B } = await loadMatrixData(size);
 
-        const a = wasm.matrixModule._malloc(n * n * 8);
-        const b = wasm.matrixModule._malloc(n * n * 8);
-        const c = wasm.matrixModule._malloc(n * n * 8);
-        wasm.matrixModule.HEAPF64.set(A, a >> 3);
-        wasm.matrixModule.HEAPF64.set(B, b >> 3);
+        const a = wasm.overheadModule._malloc(n * n * 8);
+        const b = wasm.overheadModule._malloc(n * n * 8);
+        const c = wasm.overheadModule._malloc(n * n * 8);
+        wasm.overheadModule.HEAPF64.set(A, a >> 3);
+        wasm.overheadModule.HEAPF64.set(B, b >> 3);
 
         if (!cancel) {
             console.log(`Running full matrix multiplication on ${size}`);
-            const times = fullMatrix(wasm.matrixModule, a, b, c, n);
+            const times = fullMatrix(wasm.overheadModule, a, b, c, n);
             results.push({ experiment: 'full_matrix', size, call_count: 1, times});
             console.log("Done.");
         } else {
@@ -162,20 +165,21 @@ export async function runAllBenchmarks() {
             const times = cellMatrix(wasm.overheadModule, a, b, c, n);
             results.push({ experiment: 'cell_matrix', size, call_count: n * n, times});
             console.log("Done.");
-        } else {
+        } else if (cancel) {
             console.log("Cancelling..");
             return results;
         }
-        
-        wasm.matrixModule._free(a);
-        wasm.matrixModule._free(b);
+
+        wasm.overheadModule._free(a);
+        wasm.overheadModule._free(b);
+        wasm.overheadModule._free(c);
     }
 
     console.log("Overhead benchmarks finished.");
     return results;
 }
 
-export function initBench() {
+export function initOverheadBench() {
     const startButton = document.getElementById('start-button');
     const exportButton = document.getElementById('export-button');
     const cancelButton = document.getElementById('cancel-button');
@@ -190,26 +194,24 @@ export function initBench() {
         status.textContent = 'Running...';
         cancelButton.style.display = 'inline';
         startButton.style.display = 'none';
-        
+
         const results = await runAllBenchmarks();
-        
+
         cancelButton.style.display = 'none';
         startButton.style.display = 'inline';
         startButton.disabled = false;
 
         if (cancel) {
-            startButton.disabled = false;
             status.textContent = 'Cancelled.';
         } else {
             csvData = buildCSV(results);
             status.textContent = 'Done.';
             exportButton.disabled = false;
         }
-
     });
 
     cancelButton.addEventListener('click', () => {
-        console.log("Requesting to cancel.")
+        console.log("Attempting to cancel.")
         cancel = true;
         cancelButton.style.display = 'none';
         startButton.style.display = 'inline';

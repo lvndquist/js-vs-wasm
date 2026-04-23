@@ -22,6 +22,13 @@ const SIZES = ['small', 'medium', 'large', 'very_large'];
 
 let cancel = false;
 
+function detectBrowser() {
+    const ua = navigator.userAgent;
+    if (ua.includes('Firefox')) return 'firefox';
+    if (ua.includes('Chrome')) return 'chrome';
+    return 'unknown';
+}
+
 async function initWasm() {
     const [
         mergeSortModule,
@@ -132,11 +139,12 @@ function buildCSV(results) {
 }
 
 function downloadCSV(csv) {
+    const browser = detectBrowser();
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'results.csv';
+    a.download = `js_wasm_results_${browser}.csv`;
     a.click();
     URL.revokeObjectURL(url);
 }
@@ -306,7 +314,7 @@ async function validateAlgorithms(wasm) {
     console.log("---------------------------");
 }
 
-export async function runAllBenchmarks() {
+async function runAllBenchmarks() {
     const results = [];
     let startTotal = null;
     let endTotal = null;
@@ -550,7 +558,7 @@ export function initBench() {
     });
 
     cancelButton.addEventListener('click', () => {
-        console.log("Requesting to cancel.")
+        console.log("Attempting to cancel.")
         cancel = true;
         cancelButton.style.display = 'none';
         startButton.style.display = 'inline';

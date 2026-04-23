@@ -201,14 +201,12 @@ emcc "src/c/numeric/matrix_multiplication.c" -O2 -o "src/wasm/numeric/matrix_mul
 
 To measure the overhead, 4 different functions are used. 3 functions which break down the matrix multiplication into different parts, to force different levels of boundry crossing between JS and WASM in benchmarking. One more function is included to expose only the boundry crossing itself, namely a noop function that does no calculations. These functions are implemented in C and need to be compiled into WASM, similar to previously.
 
-## Matrix
-
 ```zsh
 emcc "src/c/overhead/overhead.c" -O2 -o "src/wasm/overhead/overhead.mjs" \
-  -s EXPORTED_FUNCTIONS='["_matrix_multiplication_row","matrix_multiplication_cell","_malloc","_free"]' \
+  -s EXPORTED_FUNCTIONS='["_noop","_matrix_multiplication_full", "_matrix_multiplication_row","_matrix_multiplication_cell","_malloc","_free"]' \
   -s EXPORTED_RUNTIME_METHODS='["HEAPF64"]' \
   -s MODULARIZE=1 \
   -s EXPORT_ES6=1 \
-  -s EXPORT_NAME='createMergeSortModule' \
+  -s EXPORT_NAME='createOverheadModule' \
   -s ALLOW_MEMORY_GROWTH=1
 ```

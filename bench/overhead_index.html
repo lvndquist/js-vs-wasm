@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>WASM overhead Benchmark</title>
+    <style>
+        body {
+            font-family: arial;
+            max-width: 600px;
+            margin: 60px auto;
+            padding: 0 20px;
+            background: #fff;
+            color: #111;
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+        }
+
+        p {
+            color: #555;
+            margin-bottom: 32px;
+            font-size: 0.9rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 13px;
+            margin-bottom: 22px;
+        }
+
+        button {
+            padding: 9px 20px;
+            font-family: arial;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: 1px solid #111;
+            background: #fff;
+        }
+
+        button:hover:not(:disabled) {
+            background: #111;
+            color: #fff;
+        }
+
+        button:disabled {
+            opacity: 0.35;
+            cursor: default;
+        }
+
+        #status {
+            font-size: 0.85rem;
+            color: #444;
+            min-height: 1.4rem;
+        }
+
+        #cancel-button {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>WASM overhead Benchmark</h1>
+    <p>Run WASM matrix multiplication and no-op to collect data about WASM overhead. Results as CSV</p>
+
+    <div class="controls">
+        <button id="start-button">Run benchmarks</button>
+        <button id="cancel-button">Cancel</button>
+        <button id="export-button" disabled>Download CSV</button>
+    </div>
+
+    <div id="status">Ready.</div>
+
+    <script type="module">
+        import { initOverheadBench } from './bench_overhead.js';
+        initOverheadBench();
+    </script>
+</body>
+</html>
