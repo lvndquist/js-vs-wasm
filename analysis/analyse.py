@@ -265,10 +265,68 @@ def matrix_boundary_plot(data_frame):
 
         save_plot(figure, f'matrix_granularity_{browser}.png')
 
+def algorithm_summary(data_frame):
+    """Print a summary of the results for a given algorithm."""
+    group_cols = ['algorithm', 'implementation', 'size']
 
+    s = (
+        data_frame.groupby(group_cols)['time_in_ms']
+        .agg(mean='mean', std='std', median='median', min='min', max='max')
+        .round(3)
+    )
+    print("--------------------------------")
+    print("WASM vs JS Summary")
+    print(s.to_string())
+
+def overhead_summary(data_frame):
+    group_cols = ['experiment', 'size', 'call_count']
+
+    s = (
+        data_frame.groupby(group_cols)['time_in_ms']
+        .agg(mean='mean', std='std', median='median')
+        .round(6)
+    )
+    print("--------------------------------")
+    print("Overhead Summary")
+    print(s.to_string())
+
+def get_browser(p):
+    if 'chrome' in p.lower():
+        return 'chrome'
+    elif 'firefox' in p.lower():
+        return 'firefox'
+    else:
+        return None
+    
+def create_data_frame(paths):
+    frames = []
+    for p in paths:
+        data_frame = pandas.read_csv(p)
+        data_frame.columns = data_frame.columns.str.strip()
+        browser = get_browser(p)
+        if browser and 'browser' not in data_frame.columns:
+            data_frame['browser'] = browser
+        frames.append(data_frame)
+    return pandas.concat(frames, ignore_index=True)
 
 def main():
-    pass
+    os.makedirs('plots', exist_ok=True)
+
+    algorithm_files = [
+        'result_data/results_chrome.csv',
+        'result_data/results_firefox.csv',
+    ]
+
+    overhead_files = [
+        'result_data/overhead_results_chrome.csv',
+        'result_data/overhead_results_firefox.csv',
+    ]
+
+    data_frame = create_data_frame(algorithm_files)
+    algorithm_summary(data_frame)
+
+    data_frame = create_data_frame(overhead_files)
+    overhead_summary(data_frame)
 
 if __name__ == '__main__':
     main()
