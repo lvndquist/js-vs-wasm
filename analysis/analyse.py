@@ -260,8 +260,8 @@ def matrix_boundary_plot(data_frame):
             ax.set_title(SIZES_LABEL[size])
             ax.set_ylabel('Mean Time (ms)' if size == sizes[0] else '')
 
-        title = 'Matrix Boundary Overhead Effect '
-        figure.suptitle(title + {browser.title()})
+        title = f'Matrix Boundary Overhead Effect {browser.title()}'
+        figure.suptitle(title)
 
         save_plot(figure, f'matrix_granularity_{browser}.png')
 
@@ -290,6 +290,60 @@ def overhead_summary(data_frame):
     print("Overhead Summary")
     print(s.to_string())
 
+def create_summary_table(algorithm_data_frame, overhead_data_frame):
+    """Create a summary table combining algorithm performance and overhead results."""
+
+    group_cols_algorithm = ['browser', 'algorithm', 'implementation', 'size']
+    algorithm_statistics = (
+        algorithm_data_frame.groupby(group_cols_algorithm)['time_in_ms']
+        .agg(mean='mean', std='std', median='median', min='min', max='max')
+        .round(3)
+        .reset_index()
+    )
+
+    size_order = {s: i for i, s in enumerate(SIZES)}
+    algorithm_statistics['size_order'] = algorithm_statistics['size'].map(size_order)
+    algorithm_statistics = algorithm_statistics.sort_values(
+        ['browser', 'algorithm', 'implementation', 'size_order']
+    ).drop(columns='size_order')
+
+    group_cols_overhead = ['browser', 'experiment', 'size', 'call_count']
+    overhead_statistics = (
+        overhead_data_frame.groupby(group_cols_overhead)['time_in_ms']
+        .agg(mean='mean', std='std', median='median')
+        .round(6)
+        .reset_index()
+    )
+
+    html = f"""
+        <html>
+        <head>
+            <title>Benchmark Summary</title>
+            <style>
+                body {{ font-family: arial; padding: 2rem; }}
+                h2 {{ margin-top: 2rem; }}
+                table {{ border-collapse: collapse; width: 100%; margin-bottom: 2rem; }}
+                th, td {{ border: 1px solid #ccc; padding: 0.45rem 0.65rem; text-align: left; }}
+                th {{ background: #f3f3f3; }}
+                tr:nth-child(even) {{ background: #fafafa; }}
+            </style>
+        </head>
+        <body>
+            <h1>Benchmark Summary</h1>
+            <h2>JS vs WASM</h2>
+            {algorithm_statistics.to_html(index=False)}
+            <h2>Overhead</h2>
+            {overhead_statistics.to_html(index=False)}
+        </body>
+        </html>
+    """
+
+    path = 'summary/summary.html'
+    os.makedirs('summary', exist_ok=True)
+    with open(path, 'w') as f:
+        f.write(html)
+    print(f"saved: {path}")
+
 def get_browser(p):
     if 'chrome' in p.lower():
         return 'chrome'
@@ -310,11 +364,12 @@ def create_data_frame(paths):
     return pandas.concat(frames, ignore_index=True)
 
 def main():
+    print("Loading data and generating plots...")
     os.makedirs('plots', exist_ok=True)
 
     algorithm_files = [
-        'result_data/results_chrome.csv',
-        'result_data/results_firefox.csv',
+        'result_data/js_wasm_results_chrome.csv',
+        'result_data/js_wasm_results_firefox.csv',
     ]
 
     overhead_files = [
@@ -322,11 +377,30 @@ def main():
         'result_data/overhead_results_firefox.csv',
     ]
 
-    data_frame = create_data_frame(algorithm_files)
-    algorithm_summary(data_frame)
+    algorithm_data_frame = create_data_frame(algorithm_files)
+    algorithm_summary(algorithm_data_frame)
 
-    data_frame = create_data_frame(overhead_files)
-    overhead_summary(data_frame)
+    algorithms = algorithm_data_frame['algorithm'].unique()
+    browsers = algorithm_data_frame['browser'].unique()
+
+    for algorithm in algorithms:
+        for browser in browsers:
+            sub = algorithm_data_frame[algorithm_data_frame['browser'] == browser]
+            algorithm_plot_by_size(sub, algorithm, browser)
+            js_wasm_speedup_plot(sub, algorithm, browser)
+        browser_comparison_plot(algorithm_data_frame, algorithm)
+
+    all_algorithms_speedup_plot(algorithm_data_frame)
+    
+    overhead_data_frame = create_data_frame(overhead_files)
+    overhead_summary(overhead_data_frame)
+    no_op_overhead_plot(overhead_data_frame)
+    no_op_per_call_plot(overhead_data_frame)
+    matrix_boundary_plot(overhead_data_frame)
+
+    print("All plots generated and saved in the 'plots' directory.")
+
+    create_summary_table(algorithm_data_frame, overhead_data_frame)
 
 if __name__ == '__main__':
     main()
