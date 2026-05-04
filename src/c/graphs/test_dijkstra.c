@@ -3,7 +3,7 @@
 #include "../utils/utils.h"
 #include "dijkstra.h"
 
-static WeightedGraph *build_graph(const WeightedGraphData *gd) {
+WeightedGraph *build_graph(const WeightedGraphData *gd) {
     WeightedGraph *g = weighted_graph_create(gd->num_nodes);
     weighted_graph_build(g, gd->num_edges, gd->from, gd->to, gd->weight);
     return g;
@@ -37,12 +37,12 @@ int main(int argc, char *argv[]) {
     }
 
     printf("Dijkstra from node 0:\n");
-    printf("  Reachable nodes : %d / %d\n", reachable, g->num_nodes);
-    printf("  Max distance    : %.2f\n", max_dist);
-    printf("  dist[0]         : %.2f\n", dist[0]);
-    printf("  dist[1]         : %.2f\n", dist[1]);
-    printf("  dist[2]         : %.2f\n", dist[2]);
-    printf("  dist[3]         : %.2f\n", dist[3]);
+    printf("Reachable nodes : %d / %d\n", reachable, g->num_nodes);
+    printf("Max distance    : %.2f\n", max_dist);
+    printf("dist[0]         : %.2f\n", dist[0]);
+    printf("dist[1]         : %.2f\n", dist[1]);
+    printf("dist[2]         : %.2f\n", dist[2]);
+    printf("dist[3]         : %.2f\n", dist[3]);
 
     free(dist);
     free(visited);

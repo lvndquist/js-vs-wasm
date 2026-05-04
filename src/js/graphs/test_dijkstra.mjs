@@ -20,9 +20,16 @@ for (let i = 0; i < numOfEdges; i++) {
     weight[i] = view.getFloat64(offset, true); offset += 8;
 }
 
-const graphData = { numOfNodes, numOfEdges, from, to, weight };
+const heads = Array.from({ length: numOfNodes }, () => []);
+for (let i = 0; i < numOfEdges; i++) {
+    heads[from[i]].push({ to: to[i], weight: weight[i] });
+}
 
-const { dist, visited } = dijkstra(graphData, 0);
+const graphData = { numOfNodes, numOfEdges, from, to, weight, heads };
+const dist = new Float64Array(graphData.numOfNodes);
+const visited = new Int32Array(graphData.numOfNodes);
+
+dijkstra(graphData, 0, dist, visited);
 
 const reachable = Array.from(dist).filter(d => d < 1e18).length;
 const maxDist = Array.from(dist).filter(d => d < 1e18).reduce((a, b) => Math.max(a, b), 0);

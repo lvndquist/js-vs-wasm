@@ -1,149 +1,92 @@
 #include <stdlib.h>
 #include "dijkstra.h"
+#include "../utils/min_heap.h"
 
+/* 
+ * Creates an empty weighted graph with the given number of nodes.
+ * The graph is represented in a compressed sparse row (CSR) format
+ */
 WeightedGraph *weighted_graph_create(int num_nodes) {
-    WeightedGraph *g = (WeightedGraph *)malloc(sizeof(WeightedGraph));
-    g->counts = (int *)calloc(num_nodes, sizeof(int));
-    g->offsets = (int *)calloc(num_nodes + 1, sizeof(int));
-    g->neighbors = NULL;
-    g->weights = NULL;
-    g->num_nodes = num_nodes;
-    g->num_edges = 0;
-    return g;
+    WeightedGraph *graph = (WeightedGraph *)malloc(sizeof(WeightedGraph));
+    graph->counts = (int *)calloc(num_nodes, sizeof(int));
+    graph->offsets = (int *)calloc(num_nodes + 1, sizeof(int));
+    graph->neighbors = NULL;
+    graph->weights = NULL;
+    graph->num_nodes = num_nodes;
+    graph->num_edges = 0;
+    return graph;
 }
 
-void weighted_graph_build(WeightedGraph *g, int num_edges, int *from, int *to, double *weight) {
-    g->num_edges = num_edges;
+/**
+ * Builds the weighted graph from edge lists "from", "to" and "weight"
+ */
+void weighted_graph_build(WeightedGraph *graph, int num_edges, int *from, int *to, double *weight) {
+    graph->num_edges = num_edges;
 
+    // Count edges for each node
     for (int i = 0; i < num_edges; i++) {
-        g->counts[from[i]]++;
+        graph->counts[from[i]]++;
     }
 
-    g->offsets[0] = 0;
-    for (int i = 0; i < g->num_nodes; i++) {
-        g->offsets[i + 1] = g->offsets[i] + g->counts[i];
+    // Prefix sum to get offsets
+    graph->offsets[0] = 0;
+    for (int i = 0; i < graph->num_nodes; i++) {
+        graph->offsets[i + 1] = graph->offsets[i] + graph->counts[i];
     }
 
-    g->neighbors = (int *)malloc(num_edges * sizeof(int));
-    g->weights = (double *)malloc(num_edges * sizeof(double));
+    graph->neighbors = (int *)malloc(num_edges * sizeof(int));
+    graph->weights = (double *)malloc(num_edges * sizeof(double));
 
-    int *cursor = (int *)calloc(g->num_nodes, sizeof(int));
+    // Fill neighbors and weights using offsets and counts
+    int *cursor = (int *)calloc(graph->num_nodes, sizeof(int));
     for (int i = 0; i < num_edges; i++) {
         int f = from[i];
-        int pos = g->offsets[f] + cursor[f]++;
-        g->neighbors[pos] = to[i];
-        g->weights[pos] = weight[i];
+        int pos = graph->offsets[f] + cursor[f]++;
+        graph->neighbors[pos] = to[i];
+        graph->weights[pos] = weight[i];
     }
     free(cursor);
 }
 
-void weighted_graph_free(WeightedGraph *g) {
-    free(g->neighbors);
-    free(g->weights);
-    free(g->offsets);
-    free(g->counts);
-    free(g);
+/**
+ * Frees the memory allocated for the weighted graph.
+ */
+void weighted_graph_free(WeightedGraph *graph) {
+    free(graph->neighbors);
+    free(graph->weights);
+    free(graph->offsets);
+    free(graph->counts);
+    free(graph);
 }
-
-/* -------------------------
- * priority queue (min heap)
- * ------------------------- */
-
-typedef struct {
-    int node;
-    double dist;
-} HeapNode;
-
-typedef struct {
-    HeapNode *data;
-    int size;
-    int capacity;
-} MinHeap;
-
-static MinHeap *heap_create(int capacity) {
-    MinHeap *h = (MinHeap *)malloc(sizeof(MinHeap));
-    h->data = (HeapNode *)malloc(capacity * sizeof(HeapNode));
-    h->size = 0;
-    h->capacity = capacity;
-    return h;
-}
-
-static void heap_free(MinHeap *h) {
-    free(h->data);
-    free(h);
-}
-
-static void heap_swap(MinHeap *h, int i, int j) {
-    HeapNode tmp = h->data[i];
-    h->data[i] = h->data[j];
-    h->data[j] = tmp;
-}
-
-static void heap_push(MinHeap *h, int node, double dist) {
-    int i = h->size++;
-    h->data[i].node = node;
-    h->data[i].dist = dist;
-
-    while (i > 0) {
-        int parent = (i - 1) / 2;
-        if (h->data[parent].dist <= h->data[i].dist) break;
-        heap_swap(h, parent, i);
-        i = parent;
-    }
-}
-
-static HeapNode heap_pop(MinHeap *h) {
-    HeapNode min = h->data[0];
-    h->data[0] = h->data[--h->size];
-
-    int i = 0;
-    while (1) {
-        int left  = 2 * i + 1;
-        int right = 2 * i + 2;
-        int smallest = i;
-
-        if (left < h->size && h->data[left].dist < h->data[smallest].dist) { smallest = left; }
-        if (right < h->size && h->data[right].dist < h->data[smallest].dist) { smallest = right; }
-        if (smallest == i) break;
-
-        heap_swap(h, i, smallest);
-        i = smallest;
-    }
-
-    return min;
-}
-
-/* -------------------------
- * Dijkstra
- * ------------------------- */
 
 /*
  * Computes shortest paths from source to all nodes.
  *   dist[x] = shortest distance from source to node x
  *   visited[x] = 1 if node x is finalized
  */
-void dijkstra(const WeightedGraph *g, int source, double *dist, int *visited) {
-    int n = g->num_nodes;
+void dijkstra(const WeightedGraph *graph, int source, double *dist, int *visited) {
+    int n = graph->num_nodes;
     for (int i = 0; i < n; i++) {
         dist[i] = INFINITY;
         visited[i] = 0;
     }
     dist[source] = 0.0;
 
-    MinHeap *heap = heap_create(g->num_edges + 1);
+    MinHeap *heap = heap_create(graph->num_edges + 1);
     heap_push(heap, source, 0.0);
 
+    // Dijkstra main loop
     while (heap->size > 0) {
         HeapNode cur = heap_pop(heap);
         int u = cur.node;
         if (visited[u]) continue;
         visited[u] = 1;
 
-        int start = g->offsets[u];
-        int end = g->offsets[u + 1];
+        int start = graph->offsets[u];
+        int end = graph->offsets[u + 1];
         for (int i = start; i < end; i++) {
-            int v = g->neighbors[i];
-            double new_dist = dist[u] + g->weights[i];
+            int v = graph->neighbors[i];
+            double new_dist = dist[u] + graph->weights[i];
             if (new_dist < dist[v]) {
                 dist[v] = new_dist;
                 heap_push(heap, v, new_dist);

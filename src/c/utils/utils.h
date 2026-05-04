@@ -63,6 +63,6 @@ typedef struct MatrixData {
     double *B;
 } MatrixData;
 
-static MatrixData *load_matrix_data(const char *path);
+MatrixData *load_matrix_data(const char *path);
 
 void free_matrix_data(MatrixData *md);

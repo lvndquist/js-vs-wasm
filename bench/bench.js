@@ -151,7 +151,7 @@ function downloadCSV(csv) {
 
 async function checkMergeSort(wasm, dataset) {
     const { arr } = await loadSortData(dataset);
-    
+
     const jsCopy = arr.slice();
     merge_sort(jsCopy, jsCopy.length);
 
@@ -296,20 +296,40 @@ async function validateAlgorithms(wasm) {
     const dataset = "small";
 
     const mergeMatch = await checkMergeSort(wasm, dataset);
-    if (mergeMatch) { console.log("Merge sort: OK")} else { console.log("Merge sort: NOT MATCHING")}
+    if (mergeMatch) { 
+        console.log("Merge sort: OK")
+    } else {
+        console.log("Merge sort: NOT MATCHING")
+    }
 
     const quickMatch = await checkQuickSort(wasm, dataset);
-    if (quickMatch) { console.log("Quick sort: OK")} else { console.log("Quick sort: NOT MATCHING")}
+    if (quickMatch) {
+        console.log("Quick sort: OK")
+    } else {
+        console.log("Quick sort: NOT MATCHING")
+    }
 
     const bfsMatch = await checkBFS(wasm, dataset);
-    if (bfsMatch) { console.log("BFS: OK")} else { console.log("BFS: NOT MATCHING")}
+    if (bfsMatch) {
+        console.log("BFS: OK")
+    } else {
+        console.log("BFS: NOT MATCHING")
+    }
     
     const dijkstraMatch = await checkDijkstra(wasm, dataset);
-    if (dijkstraMatch) { console.log("Dijkstra: OK")} else { console.log("Dijkstra: NOT MATCHING")}
+    if (dijkstraMatch) {
+        console.log("Dijkstra: OK")
+    } else {
+        console.log("Dijkstra: NOT MATCHING")
+    }
 
     const matrixMultiplicationMatch = await checkMatrixMultiplication(wasm, dataset);
-    if (matrixMultiplicationMatch) { console.log("Matrix multiplication: OK")} else { console.log("Matrix multiplication: NOT MATCHING")}
-    
+    if (matrixMultiplicationMatch) {
+        console.log("Matrix multiplication: OK")
+    } else {
+        console.log("Matrix multiplication: NOT MATCHING")
+    }
+
     console.log("Validation done");
     console.log("---------------------------");
 }

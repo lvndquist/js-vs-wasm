@@ -36,12 +36,12 @@ int main(int argc, char *argv[]) {
     }
 
     printf("BFS from node 0:\n");
-    printf("  Reachable nodes : %d / %d\n", reachable, g->num_nodes);
-    printf("  Max distance    : %d\n", max_dist);
-    printf("  dist[0]         : %d\n", dist[0]);
-    printf("  dist[1]         : %d\n", dist[1]);
-    printf("  dist[2]         : %d\n", dist[2]);
-    printf("  dist[3]         : %d\n", dist[3]);
+    printf("Reachable nodes : %d / %d\n", reachable, g->num_nodes);
+    printf("Max distance    : %d\n", max_dist);
+    printf("dist[0]         : %d\n", dist[0]);
+    printf("dist[1]         : %d\n", dist[1]);
+    printf("dist[2]         : %d\n", dist[2]);
+    printf("dist[3]         : %d\n", dist[3]);
 
     free(visited);
     free(dist);

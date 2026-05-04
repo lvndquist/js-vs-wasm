@@ -1,24 +1,14 @@
-import argparse
 import os
 import pandas
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
 import numpy as np
 
 SIZES = ['small', 'medium', 'large', 'very_large']
 SIZES_LABEL = {'small': 'Small', 'medium': 'Medium', 'large': 'Large', 'very_large': 'Very Large'}
 
-def load_csv(paths):
-    frames = []
-    for p in paths:
-        data_frame = pandas.read_csv(p)
-        data_frame.columns = data_frame.columns.str.strip()
-        frames.append(data_frame)
-    return pandas.concat(frames, ignore_index=True)
-
 def save_plot(figure, name):
     path = os.path.join("plots", name)
-    figure.savefig(path, dpi=200)
+    figure.savefig(path, dpi=200, bbox_inches='tight')
     print(f"saved: {path}")
     plt.close(figure)
 
@@ -78,15 +68,15 @@ def js_wasm_speedup_plot(data_frame, algorithm, browser):
         js_row = s[(s['size'] == size) & (s['implementation'] == 'js')]
         wasm_row = s[(s['size'] == size) & (s['implementation'] == 'wasm')]
         if len(js_row) and len(wasm_row):
-            speedups.append(js_row['mean'].values[0] / wasm_row['mean'].values[0])
-        else:
-            speedups.append(None)
+            js_mean = js_row['mean'].values[0]
+            wasm_mean = wasm_row['mean'].values[0]
+            if js_mean >= 0.1 and wasm_mean > 0:
+                speedups.append(js_mean / wasm_mean)
+            else:
+                speedups.append(None)
 
     figure, ax = plt.subplots(figsize=(12, 6))
-    ax.plot(
-        [SIZES_LABEL[s] for s in sizes], speedups,
-        marker='o', linewidth=2
-    )
+    ax.plot([SIZES_LABEL[s] for s in sizes], speedups, marker='o', linewidth=2)
 
     ax.axhline(1.0, color='gray', linestyle='--', linewidth=1, label='No difference')
     ax.set_xlabel('Input Size')
@@ -94,6 +84,7 @@ def js_wasm_speedup_plot(data_frame, algorithm, browser):
     title = f'{algorithm.replace("_", " ").title()} WASM Speedup over JS {browser.title()}'
     ax.set_title(title)
     ax.legend()
+    figure.text(0.01, -0.02,'Note: Data with means smaller than 0.1ms are omitted due to limitations of timer resolution.', fontsize=8, color='gray', style='italic')
     figure.tight_layout()
  
     save_plot(figure, f'{algorithm}_{browser}_speedup.png')
@@ -149,10 +140,12 @@ def browser_comparison_plot(data_frame, algorithm):
     save_plot(figure, f'{algorithm}_browser_comparison.png')
 
 def all_algorithms_speedup_plot(data_frame):
-    """Plot the speedup of WASM over JS for all algorithms in a single chart."""
+    """Plot the speedup of WASM over JS for all algorithms in a single chart.
+       A line above 1 means WASM is faster, below 1 means JS is faster.
+    """
     algorithms = data_frame['algorithm'].unique()
     sizes = ordered_by_size(data_frame)
- 
+
     figure, ax = plt.subplots(figsize=(12, 6))
 
     for algorithm in algorithms:
@@ -161,20 +154,25 @@ def all_algorithms_speedup_plot(data_frame):
         speedups = []
         present_sizes = []
         for size in sizes:
-            js_row   = s[(s['size'] == size) & (s['implementation'] == 'js')]
+            js_row = s[(s['size'] == size) & (s['implementation'] == 'js')]
             wasm_row = s[(s['size'] == size) & (s['implementation'] == 'wasm')]
             if len(js_row) and len(wasm_row):
-                speedups.append(js_row['mean'].values[0] / wasm_row['mean'].values[0])
+                js_mean = js_row['mean'].values[0]
+                wasm_mean = wasm_row['mean'].values[0]
+                if js_mean >= 0.1 and wasm_mean > 0:
+                    speedups.append(js_mean / wasm_mean)
+                else:
+                    speedups.append(None)
                 present_sizes.append(SIZES_LABEL[size])
 
-        ax.plot(present_sizes, speedups, marker='o', linewidth=2,
-                label=algorithm.replace('_', ' ').title())
+        ax.plot(present_sizes, speedups, marker='o', linewidth=2,label=algorithm.replace('_', ' ').title())
 
     ax.axhline(1.0, color='gray', linestyle='--', linewidth=1, label='No difference')
     ax.set_xlabel('Input Size')
     ax.set_ylabel('Speedup (JS time / WASM time)')
-    ax.set_title('WASM Speedup over JS (All Algorithms)')
+    ax.set_title('WASM Speedup over JS (All Algorithms & browsers)')
     ax.legend()
+    figure.text(0.01, -0.02,'Note: Data with means smaller than 0.1ms are omitted due to limitations of timer resolution.', fontsize=8, color='gray', style='italic')
     save_plot(figure, 'all_algorithms_speedup.png')
 
 def no_op_overhead_plot(data_frame):
@@ -263,32 +261,72 @@ def matrix_boundary_plot(data_frame):
         title = f'Matrix Boundary Overhead Effect {browser.title()}'
         figure.suptitle(title)
 
-        save_plot(figure, f'matrix_granularity_{browser}.png')
+        save_plot(figure, f'matrix_boundary_{browser}.png')
 
 def algorithm_summary(data_frame):
     """Print a summary of the results for a given algorithm."""
     group_cols = ['algorithm', 'implementation', 'size']
 
-    s = (
+    stats = (
         data_frame.groupby(group_cols)['time_in_ms']
         .agg(mean='mean', std='std', median='median', min='min', max='max')
         .round(3)
     )
     print("--------------------------------")
     print("WASM vs JS Summary")
-    print(s.to_string())
+    print(stats.to_string())
 
 def overhead_summary(data_frame):
     group_cols = ['experiment', 'size', 'call_count']
 
-    s = (
+    stats = (
         data_frame.groupby(group_cols)['time_in_ms']
         .agg(mean='mean', std='std', median='median')
-        .round(6)
+        .round(3)
     )
     print("--------------------------------")
     print("Overhead Summary")
-    print(s.to_string())
+    print(stats.to_string())
+
+def speedup_table(data_frame):
+    """Create a table showing the speedup of WASM over JS for each algorithm, browser and size."""
+    rows = []
+    for browser in data_frame['browser'].unique():
+        for algorithm in data_frame['algorithm'].unique():
+            sub = data_frame[(data_frame['browser'] == browser) & (data_frame['algorithm'] == algorithm)]
+            stats = statistics(sub, ['size', 'implementation'])
+            for size in SIZES:
+                js_row = stats[(stats['size'] == size) & (stats['implementation'] == 'js')]
+                wasm_row = stats[(stats['size'] == size) & (stats['implementation'] == 'wasm')]
+                if len(js_row) and len(wasm_row):
+                    js_mean = js_row['mean'].values[0]
+                    wasm_mean = wasm_row['mean'].values[0]
+                    if js_mean > 0 and wasm_mean > 0:
+                        speedup = round(js_mean / wasm_mean, 3)
+                    else:
+                        speedup = None
+                    rows.append({
+                        'browser': browser,
+                        'algorithm': algorithm,
+                        'size': size,
+                        'js mean (ms)': round(js_mean, 3) if len(js_row) else None,
+                        'wasm mean (ms)': round(wasm_mean, 3) if len(wasm_row) else None,
+                        'speedup': speedup
+                    })
+
+    return pandas.DataFrame(rows)
+
+def table_color(data_frame):
+    """Apply color formatting to a DataFrame based on speedup values.
+       Green = WASM faster, Red = JS faster, no color = equal or omitted.
+    """
+    styled = data_frame.style.map(
+        lambda val: 'background-color: #d4edda' if pandas.notna(val) and val > 1.0
+            else 'background-color: #f8d7da' if pandas.notna(val) and val < 1.0
+            else '',
+        subset=['speedup']
+    ).format({'speedup': lambda val: f'{val:.3f}' if pandas.notna(val) else 'N/A'})
+    return styled
 
 def create_summary_table(algorithm_data_frame, overhead_data_frame):
     """Create a summary table combining algorithm performance and overhead results."""
@@ -310,10 +348,33 @@ def create_summary_table(algorithm_data_frame, overhead_data_frame):
     group_cols_overhead = ['browser', 'experiment', 'size', 'call_count']
     overhead_statistics = (
         overhead_data_frame.groupby(group_cols_overhead)['time_in_ms']
-        .agg(mean='mean', std='std', median='median')
-        .round(6)
+        .agg(mean='mean', std='std', median='median', min='min', max='max')
+        .round(3)
         .reset_index()
     )
+
+    overhead_statistics['size_order'] = overhead_statistics['size'].map(size_order)
+    overhead_statistics = overhead_statistics.sort_values(
+        ['browser', 'experiment', 'size_order', 'call_count']
+    ).drop(columns='size_order')
+
+    algorithm_statistics = algorithm_statistics.rename(columns={
+        'mean': 'mean (ms)',
+        'std': 'std (ms)',
+        'median': 'median (ms)',
+        'min': 'min (ms)',
+        'max': 'max (ms)'
+    })
+
+    overhead_statistics = overhead_statistics.rename(columns={
+        'mean': 'mean (ms)',
+        'std': 'std (ms)',
+        'median': 'median (ms)',
+        'min': 'min (ms)',
+        'max': 'max (ms)'
+    })
+
+    speedup_statistics = speedup_table(algorithm_data_frame)
 
     html = f"""
         <html>
@@ -334,6 +395,9 @@ def create_summary_table(algorithm_data_frame, overhead_data_frame):
             {algorithm_statistics.to_html(index=False)}
             <h2>Overhead</h2>
             {overhead_statistics.to_html(index=False)}
+            <h2>WASM Speedup over JS</h2>
+            <p>Note: A value above 1.0 indicates WASM is faster than JS. Green = WASM faster, Red = JS faster, no color = equal or omitted.</p>
+            {table_color(speedup_statistics).to_html(index=False)}
         </body>
         </html>
     """
@@ -378,7 +442,6 @@ def main():
     ]
 
     algorithm_data_frame = create_data_frame(algorithm_files)
-    algorithm_summary(algorithm_data_frame)
 
     algorithms = algorithm_data_frame['algorithm'].unique()
     browsers = algorithm_data_frame['browser'].unique()
@@ -391,12 +454,14 @@ def main():
         browser_comparison_plot(algorithm_data_frame, algorithm)
 
     all_algorithms_speedup_plot(algorithm_data_frame)
-    
+
     overhead_data_frame = create_data_frame(overhead_files)
-    overhead_summary(overhead_data_frame)
     no_op_overhead_plot(overhead_data_frame)
     no_op_per_call_plot(overhead_data_frame)
     matrix_boundary_plot(overhead_data_frame)
+
+    #overhead_summary(overhead_data_frame)
+    #algorithm_summary(algorithm_data_frame)
 
     print("All plots generated and saved in the 'plots' directory.")
 
