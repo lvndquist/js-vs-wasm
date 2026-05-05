@@ -218,3 +218,20 @@ emcc "src/c/overhead/overhead.c" -O2 -o "src/wasm/overhead/overhead.mjs" \
   -s EXPORT_NAME='createOverheadModule' \
   -s ALLOW_MEMORY_GROWTH=1
 ```
+
+# Overhead
+
+speedup per algorithm combined over browsers
+javascript vs wasm per algorithm per browser comparison
+browser 
+
+To analyze the results data, a python script is used to generate graphs and tables. Combined statistics for summary are genereated into a html file './summary/summary.html'. Plots are saved in the 'plots' directory. 'all_algorithms_speedup' shows the combined speedup per algorithm, with data combined from both chrome and firefox. 'XX_browser_comparison' compares javascript and wasm for one specific algorithm 'XX' over chrome and firefox. "XX_YY_by_size" shows the mean time and standard deviation for alogrithm 'XX' on browser 'YY'.
+
+Run the script as
+
+```zsh
+python3 analyse.py
+```
+
+from the analysis directory.
+

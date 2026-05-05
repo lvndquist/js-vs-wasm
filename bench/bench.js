@@ -428,12 +428,11 @@ async function runAllBenchmarks() {
         console.log(`JS. Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`)
 
         let pointer = wasm.mergeSortModule._malloc(n * 4);
-        const wasmMergeCopy = wasm.mergeSortModule.HEAP32.subarray(pointer >> 2, (pointer >> 2) + n);
-        
+
         console.log(`Running WASM mergesort on ${size}...`);
         startTotal = performance.now();
         const mergesortWasmTimes = runBenchmark(() => {
-            wasmMergeCopy.set(arr);
+            wasm.mergeSortModule.HEAP32.set(arr, pointer >> 2);
             wasm.mergeSortModule._merge_sort(pointer, n);
         });
         endTotal = performance.now();
