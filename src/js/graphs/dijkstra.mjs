@@ -56,7 +56,7 @@ class MinHeap {
 }
 
 export function dijkstra(graphData, source, dist, visited) {
-    const { numOfEdges, heads } = graphData;
+    const { numOfNodes, numOfEdges, offsets, neighbors, weights } = graphData;
 
     dist.fill(INFINITY);
     visited.fill(0);
@@ -67,12 +67,17 @@ export function dijkstra(graphData, source, dist, visited) {
 
     while (heap.size > 0) {
         const { node: u, dist: d } = heap.pop();
+
         if (visited[u]) continue;
         visited[u] = 1;
 
-        const neighbours = heads[u];
-        for (let i = 0; i < neighbours.length; i++) {
-            const { to: v, weight: w } = neighbours[i];
+        const start = offsets[u];
+        const end = offsets[u + 1];
+
+        for (let i = start; i < end; i++) {
+            const v = neighbors[i];
+            const w = weights[i];
+
             const newDist = dist[u] + w;
             if (newDist < dist[v]) {
                 dist[v] = newDist;
@@ -80,6 +85,4 @@ export function dijkstra(graphData, source, dist, visited) {
             }
         }
     }
-
-    return { dist, visited };
 }

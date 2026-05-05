@@ -1,8 +1,9 @@
-export function bfs(graphData, source) {
-    const { numOfNodes, heads } = graphData;
+export function bfs(graphData, source, visited, dist) {
+    const { offsets, neighbors, numOfNodes } = graphData;
 
-    const visited = new Int32Array(numOfNodes);
-    const dist = new Int32Array(numOfNodes).fill(-1);
+    visited.fill(0);
+    dist.fill(-1);
+
     const queue = new Int32Array(numOfNodes);
     let head = 0, tail = 0;
 
@@ -12,9 +13,11 @@ export function bfs(graphData, source) {
 
     while (head < tail) {
         const node = queue[head++];
-        const neighbours = heads[node];
-        for (let i = 0; i < neighbours.length; i++) {
-            const neighbour = neighbours[i];
+        const start = offsets[node];
+        const end = offsets[node + 1];
+
+        for (let i = start; i < end; i++) {
+            const neighbour = neighbors[i];
             if (!visited[neighbour]) {
                 visited[neighbour] = 1;
                 dist[neighbour] = dist[node] + 1;
@@ -22,6 +25,4 @@ export function bfs(graphData, source) {
             }
         }
     }
-
-    return { visited, dist };
 }

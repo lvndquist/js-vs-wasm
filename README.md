@@ -79,7 +79,7 @@ The C test files are run with gcc, and the Javascript test files are run with no
 To run all tests use
 ```zsh
 chmod +x ./test.sh
-./test.sh
+./test.sh XX
 ```
 
 ## Sorting

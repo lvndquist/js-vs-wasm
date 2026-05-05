@@ -62,7 +62,9 @@ void bfs(const Graph *g, int source, int *visited, int *dist) {
     // init visited and dist arrays to default values
     int n = g->num_nodes;
     memset(visited, 0, n * sizeof(int));
-    for (int i = 0; i < n; i++) dist[i] = -1;
+    for (int i = 0; i < n; i++) {
+        dist[i] = -1;
+    }
 
     // queue for BFS
     int *queue = (int *)malloc(n * sizeof(int));

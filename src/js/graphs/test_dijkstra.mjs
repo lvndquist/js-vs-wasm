@@ -20,12 +20,30 @@ for (let i = 0; i < numOfEdges; i++) {
     weight[i] = view.getFloat64(offset, true); offset += 8;
 }
 
-const heads = Array.from({ length: numOfNodes }, () => []);
+// CSR structure
+const offsets = new Int32Array(numOfNodes + 1);
+const neighbors = new Int32Array(numOfEdges);
+const weights = new Float64Array(numOfEdges);
+const counts = new Int32Array(numOfNodes);
+
 for (let i = 0; i < numOfEdges; i++) {
-    heads[from[i]].push({ to: to[i], weight: weight[i] });
+    counts[from[i]]++;
 }
 
-const graphData = { numOfNodes, numOfEdges, from, to, weight, heads };
+for (let i = 0; i < numOfNodes; i++) {
+    offsets[i + 1] = offsets[i] + counts[i];
+}
+
+const cursor = new Int32Array(numOfNodes);
+for (let i = 0; i < numOfEdges; i++) {
+    const u = from[i];
+    const pos = offsets[u] + cursor[u]++;
+    neighbors[pos] = to[i];
+    weights[pos] = weight[i];
+}
+
+const graphData = { numOfNodes, numOfEdges, offsets, neighbors, weights };
+
 const dist = new Float64Array(graphData.numOfNodes);
 const visited = new Int32Array(graphData.numOfNodes);
 

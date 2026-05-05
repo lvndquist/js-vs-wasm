@@ -66,22 +66,47 @@ async function loadGraphData(size) {
     const res = await fetch(`${DATA_ROOT}/graphs/${size}.bin`);
     const buffer = await res.arrayBuffer();
     const view = new DataView(buffer);
+
     const numOfNodes = view.getInt32(0, true);
     const numOfEdges = view.getInt32(4, true);
-    const from = new Int32Array(buffer.slice(8), 0, numOfEdges);
-    const to = new Int32Array(buffer.slice(8 + numOfEdges * 4), 0, numOfEdges);
-    const heads = Array.from({ length: numOfNodes }, () => []);
+
+    const from = new Int32Array(buffer, 8, numOfEdges);
+    const to = new Int32Array(buffer, 8 + numOfEdges * 4, numOfEdges);
+
+    const offsets = new Int32Array(numOfNodes + 1);
+    const neighbors = new Int32Array(numOfEdges);
+    const counts = new Int32Array(numOfNodes);
     for (let i = 0; i < numOfEdges; i++) {
-        heads[from[i]].push(to[i]);
+        counts[from[i]]++;
     }
 
-    return { numOfNodes, numOfEdges, from, to, heads };
+    offsets[0] = 0;
+
+    for (let i = 0; i < numOfNodes; i++) {
+        offsets[i + 1] = offsets[i] + counts[i];
+    }
+
+    const cursor = new Int32Array(numOfNodes);
+    for (let i = 0; i < numOfEdges; i++) {
+        const startNode = from[i];
+        neighbors[offsets[startNode] + cursor[startNode]++] = to[i];
+    }
+
+    return {
+        numOfNodes,
+        numOfEdges,
+        from,
+        to,
+        offsets,
+        neighbors
+    };
 }
 
 async function loadWeightedGraphData(size) {
-    const res = await fetch(`${DATA_ROOT}/graphs_weighted/${size}.bin`);
+    const res = await fetch(`${DATA_ROOT}/graphs_weighted/${size}.bin`); // Fixed path naming
     const buffer = await res.arrayBuffer();
     const view = new DataView(buffer);
+
     const numOfNodes = view.getInt32(0, true);
     const numOfEdges = view.getInt32(4, true);
 
@@ -89,19 +114,33 @@ async function loadWeightedGraphData(size) {
     const to = new Int32Array(numOfEdges);
     const weight = new Float64Array(numOfEdges);
 
+    const structSize = 16;
     let offset = 8;
+
     for (let i = 0; i < numOfEdges; i++) {
-        from[i] = view.getInt32(offset, true); offset += 4;
-        to[i] = view.getInt32(offset, true); offset += 4;
-        weight[i] = view.getFloat64(offset, true); offset += 8;
+        from[i] = view.getInt32(offset, true);
+        to[i]   = view.getInt32(offset + 4, true);
+        weight[i] = view.getFloat64(offset + 8, true);
+        offset += structSize;
     }
 
-    const heads = Array.from({ length: numOfNodes }, () => []);
+    const offsets = new Int32Array(numOfNodes + 1);
+    const neighbors = new Int32Array(numOfEdges);
+    const weights = new Float64Array(numOfEdges);
+    const counts = new Int32Array(numOfNodes);
+
+    for (let i = 0; i < numOfEdges; i++) counts[from[i]]++;
+    for (let i = 0; i < numOfNodes; i++) offsets[i + 1] = offsets[i] + counts[i];
+
+    const cursor = new Int32Array(numOfNodes);
     for (let i = 0; i < numOfEdges; i++) {
-        heads[from[i]].push({ to: to[i], weight: weight[i] });
+        const u = from[i];
+        const pos = offsets[u] + cursor[u]++;
+        neighbors[pos] = to[i];
+        weights[pos] = weight[i];
     }
 
-    return { numOfNodes, numOfEdges, from, to, weight, heads };
+    return { numOfNodes, numOfEdges, from, to, weight, offsets, neighbors, weights };
 }
 
 async function loadMatrixData(size) {
@@ -150,20 +189,22 @@ function downloadCSV(csv) {
 }
 
 async function checkMergeSort(wasm, dataset) {
-    const { arr } = await loadSortData(dataset);
+    const { n, arr } = await loadSortData(dataset);
 
     const jsCopy = arr.slice();
-    merge_sort(jsCopy, jsCopy.length);
+    merge_sort(jsCopy, n);
 
     const pointer = wasm.mergeSortModule._malloc(arr.length * 4);
-    const wasmCopy = arr.slice();
-    wasm.mergeSortModule.HEAP32.set(wasmCopy, pointer >> 2);
-    wasm.mergeSortModule._merge_sort(pointer, arr.length);
-    const wasmResult = new Int32Array(wasm.mergeSortModule.HEAP32.buffer, pointer, arr.length);
+    wasm.mergeSortModule.HEAP32.set(arr, pointer >> 2);
+    wasm.mergeSortModule._merge_sort(pointer, n);
+    const wasmResult = wasm.mergeSortModule.HEAP32.subarray(pointer >> 2, (pointer >> 2) + n);
 
     let match = true;
-    for (let i = 0; i < arr.length; i++) {
-        if (jsCopy[i] !== wasmResult[i]) { match = false; break; }
+    for (let i = 0; i < n; i++) {
+        if (jsCopy[i] !== wasmResult[i]) {
+            match = false;
+            break;
+        }
     }
     // console.log(arr);
     // console.log(jsCopy);
@@ -173,19 +214,19 @@ async function checkMergeSort(wasm, dataset) {
 }
 
 async function checkQuickSort(wasm, dataset) {
-    const { arr } = await loadSortData(dataset);
+    const { n, arr } = await loadSortData(dataset);
 
     const jsCopy = arr.slice();
-    quick_sort(jsCopy, jsCopy.length);
+    quick_sort(jsCopy, n);
 
     const pointer = wasm.quickSortModule._malloc(arr.length * 4);
     const wasmCopy = arr.slice();
     wasm.quickSortModule.HEAP32.set(wasmCopy, pointer >> 2);
-    wasm.quickSortModule._quick_sort(pointer, arr.length);
-    const wasmResult = new Int32Array(wasm.quickSortModule.HEAP32.buffer, pointer, arr.length);
+    wasm.quickSortModule._quick_sort(pointer, n);
+    const wasmResult = new Int32Array(wasm.quickSortModule.HEAP32.buffer, pointer, n);
 
     let match = true;
-    for (let i = 0; i < arr.length; i++) {
+    for (let i = 0; i < n; i++) {
         if (jsCopy[i] !== wasmResult[i]) { match = false; break; }
     }
     // console.log(arr);
@@ -195,27 +236,37 @@ async function checkQuickSort(wasm, dataset) {
     return match;
 }
 
-
 async function checkBFS(wasm, dataset) {
     const graphData = await loadGraphData(dataset);
     const { numOfNodes, numOfEdges, from, to } = graphData;
 
-    const jsResult = bfs(graphData, 0);
+    const visited = new Int32Array(numOfNodes);
+    const dist = new Int32Array(numOfNodes);
+
+    bfs(graphData, 0, visited, dist);
 
     const fromPointer = wasm.bfsModule._malloc(numOfEdges * 4);
     const toPointer = wasm.bfsModule._malloc(numOfEdges * 4);
     wasm.bfsModule.HEAP32.set(from, fromPointer >> 2);
     wasm.bfsModule.HEAP32.set(to, toPointer >> 2);
+
     const g = wasm.bfsModule._graph_create(numOfNodes);
     wasm.bfsModule._graph_build(g, numOfEdges, fromPointer, toPointer);
+
     const visitedPointer = wasm.bfsModule._malloc(numOfNodes * 4);
     const distPointer = wasm.bfsModule._malloc(numOfNodes * 4);
+
     wasm.bfsModule._bfs(g, 0, visitedPointer, distPointer);
-    const wasmDist = new Int32Array(wasm.bfsModule.HEAP32.buffer, distPointer, numOfNodes);
+
+    const wasmDist = wasm.bfsModule.HEAP32.subarray(distPointer >> 2, (distPointer >> 2) + numOfNodes);
 
     let match = true;
     for (let i = 0; i < numOfNodes; i++) {
-        if (jsResult.dist[i] !== wasmDist[i]) { match = false; break; }
+        if (dist[i] !== wasmDist[i]) {
+            console.log(`Mismatch node ${i}: JS=${dist[i]}, WASM=${wasmDist[i]}`);
+            match = false;
+            break;
+        }
     }
 
     wasm.bfsModule._graph_free(g);
@@ -230,10 +281,10 @@ async function checkBFS(wasm, dataset) {
 async function checkDijkstra(wasm, dataset) {
     const graphData = await loadWeightedGraphData(dataset);
     const { numOfNodes, numOfEdges, from, to, weight } = graphData;
-    const jsDist = new Float64Array(numOfNodes);
-    const jsVisited = new Int32Array(numOfNodes);
 
-    dijkstra(graphData, 0, jsDist, jsVisited);
+    const dist = new Float64Array(numOfNodes);
+    const visited = new Int32Array(numOfNodes);
+    dijkstra(graphData, 0, dist, visited);
 
     const fromPointer = wasm.dijkstraModule._malloc(numOfEdges * 4);
     const toPointer = wasm.dijkstraModule._malloc(numOfEdges * 4);
@@ -245,14 +296,25 @@ async function checkDijkstra(wasm, dataset) {
 
     const weightedGraph = wasm.dijkstraModule._weighted_graph_create(numOfNodes);
     wasm.dijkstraModule._weighted_graph_build(weightedGraph, numOfEdges, fromPointer, toPointer, weightPointer);
+
     const wasmVisitedPointer = wasm.dijkstraModule._malloc(numOfNodes * 4);
     const wasmDistPointer = wasm.dijkstraModule._malloc(numOfNodes * 8);
+
     wasm.dijkstraModule._dijkstra(weightedGraph, 0, wasmDistPointer, wasmVisitedPointer);
-    const wasmDistArr = new Float64Array(wasm.dijkstraModule.HEAPF64.buffer, wasmDistPointer, numOfNodes);
+
+    const wasmDistView = wasm.dijkstraModule.HEAPF64.subarray(wasmDistPointer >> 3, (wasmDistPointer >> 3) + numOfNodes);
 
     let match = true;
     for (let i = 0; i < numOfNodes; i++) {
-        if (Math.abs(jsDist[i] - wasmDistArr[i]) > 1e-9) { match = false; break; }
+        const d1 = dist[i];
+        const d2 = wasmDistView[i];
+
+        if (d1 === d2) continue;
+        if (Math.abs(d1 - d2) > 1e-9) {
+            console.error(`Mismatch node ${i}: JS=${d1}, WASM=${d2}`);
+            match = false;
+            break;
+        }
     }
 
     wasm.dijkstraModule._weighted_graph_free(weightedGraph);
@@ -346,32 +408,33 @@ async function runAllBenchmarks() {
 
     // Sorting
     for (const size of SIZES) {
-        if (cancel) { 
-            console.log("Cancelling...")
-            return results 
+        if (cancel) {
+            console.log("Cancelling...");
+            return results;
         }
         console.log(`Loading sorting data. Size: ${size}...`);
-        const {_, arr} = await loadSortData(size);
+        const {n, arr} = await loadSortData(size);
 
         // run mergesort
         console.log(`Running JS mergesort on ${size}...`);
+        const mergeCopy = arr.slice();
         startTotal = performance.now();
         const mergesortJSTimes = runBenchmark(() => {
-            const copy = arr.slice();
-            merge_sort(copy, copy.length);
+            mergeCopy.set(arr);
+            merge_sort(mergeCopy, n);
         });
-        
         endTotal = performance.now();
         results.push({ algorithm: 'mergesort', implementation: 'js', size, times: mergesortJSTimes });
         console.log(`JS. Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`)
 
-        let pointer = wasm.mergeSortModule._malloc(arr.length * 4);
+        let pointer = wasm.mergeSortModule._malloc(n * 4);
+        const wasmMergeCopy = wasm.mergeSortModule.HEAP32.subarray(pointer >> 2, (pointer >> 2) + n);
+        
         console.log(`Running WASM mergesort on ${size}...`);
         startTotal = performance.now();
         const mergesortWasmTimes = runBenchmark(() => {
-            const copy = arr.slice();
-            wasm.mergeSortModule.HEAP32.set(copy, pointer >> 2);
-            wasm.mergeSortModule._merge_sort(pointer, arr.length);
+            wasmMergeCopy.set(arr);
+            wasm.mergeSortModule._merge_sort(pointer, n);
         });
         endTotal = performance.now();
         wasm.mergeSortModule._free(pointer);
@@ -381,21 +444,23 @@ async function runAllBenchmarks() {
         // run quicksort
         console.log(`Running JS quicksort on ${size}...`);
         startTotal = performance.now();
+        const quickCopy = arr.slice();
         const quicksortTimes = runBenchmark(() => {
-            const copy = arr.slice();
-            quick_sort(copy, copy.length);
+            quickCopy.set(arr);
+            quick_sort(quickCopy, n);
         });
         endTotal = performance.now();
         results.push({ algorithm: 'quicksort', implementation: 'js', size, times: quicksortTimes });
         console.log(`JS. Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`);
 
         pointer = wasm.quickSortModule._malloc(arr.length * 4);
+        const wasmQuickCopy = wasm.quickSortModule.HEAP32.subarray(pointer >> 2, (pointer >> 2) + arr.length);
+
         console.log(`Running WASM quicksort on ${size}...`);
         startTotal = performance.now();
         const quicksortWasmTimes = runBenchmark(() => {
-            const copy = arr.slice();
-            wasm.quickSortModule.HEAP32.set(copy, pointer >> 2);
-            wasm.quickSortModule._quick_sort(pointer, arr.length);
+            wasmQuickCopy.set(arr);
+            wasm.quickSortModule._quick_sort(pointer, n);
         });
         endTotal = performance.now();
         wasm.quickSortModule._free(pointer);
@@ -405,18 +470,21 @@ async function runAllBenchmarks() {
 
     // Graphing (BFS)
     for (const size of SIZES) {
-        if (cancel) { 
-            console.log("Cancelling...")
-            return results 
+        if (cancel) {
+            console.log("Cancelling...");
+            return results;
         }
 
         console.log(`Loading graph data. Size: ${size}...`);
         const graphData = await loadGraphData(size);
 
+        const visited = new Int32Array(graphData.numOfNodes);
+        const dist = new Int32Array(graphData.numOfNodes);
+
         console.log(`Running JS bfs on ${size}...`);
         startTotal = performance.now();
         const bfsTimes = runBenchmark(() => {
-            bfs(graphData, 0);
+            bfs(graphData, 0, visited, dist);
         });
         endTotal = performance.now();
         results.push({ algorithm: 'bfs', implementation: 'js', size, times: bfsTimes });
@@ -432,16 +500,17 @@ async function runAllBenchmarks() {
         const g = wasm.bfsModule._graph_create(numOfNodes);
         wasm.bfsModule._graph_build(g, numOfEdges, fromPointer, toPointer);
 
+        const visitedPointer = wasm.bfsModule._malloc(numOfNodes * 4);
+        const distPointer = wasm.bfsModule._malloc(numOfNodes * 4);
+
         startTotal = performance.now();
         const bfsWasmTimes = runBenchmark(() => {
-            const visitedPointer = wasm.bfsModule._malloc(numOfNodes * 4);
-            const distPointer = wasm.bfsModule._malloc(numOfNodes * 4);
             wasm.bfsModule._bfs(g, 0, visitedPointer, distPointer);
-            wasm.bfsModule._free(visitedPointer);
-            wasm.bfsModule._free(distPointer);
         });
         endTotal = performance.now();
-
+        
+        wasm.bfsModule._free(visitedPointer);
+        wasm.bfsModule._free(distPointer);
         wasm.bfsModule._graph_free(g);
         wasm.bfsModule._free(fromPointer);
         wasm.bfsModule._free(toPointer);
@@ -451,9 +520,9 @@ async function runAllBenchmarks() {
 
     // Graph (Dijkstra)
     for (const size of SIZES) {
-        if (cancel) { 
-            console.log("Cancelling...")
-            return results 
+        if (cancel) {
+            console.log("Cancelling...");
+            return results;
         }
 
         console.log(`Loading weighted graph data. Size: ${size}...`);
@@ -476,6 +545,9 @@ async function runAllBenchmarks() {
         const fromPointer = wasm.dijkstraModule._malloc(numOfEdges * 4);
         const toPointer = wasm.dijkstraModule._malloc(numOfEdges * 4);
         const weightPointer = wasm.dijkstraModule._malloc(numOfEdges * 8);
+        const visitedPointer = wasm.dijkstraModule._malloc(numOfNodes * 4);
+        const distPointer = wasm.dijkstraModule._malloc(numOfNodes * 8);
+
         wasm.dijkstraModule.HEAP32.set(from, fromPointer >> 2);
         wasm.dijkstraModule.HEAP32.set(to, toPointer >> 2);
         wasm.dijkstraModule.HEAPF64.set(weight, weightPointer >> 3);
@@ -485,13 +557,12 @@ async function runAllBenchmarks() {
 
         startTotal = performance.now();
         const dijkstraWasmTimes = runBenchmark(() => {
-            const visitedPointer = wasm.dijkstraModule._malloc(numOfNodes * 4);
-            const distPointer    = wasm.dijkstraModule._malloc(numOfNodes * 8);
             wasm.dijkstraModule._dijkstra(g, 0, distPointer, visitedPointer);
-            wasm.dijkstraModule._free(visitedPointer);
-            wasm.dijkstraModule._free(distPointer);
         });
         endTotal = performance.now();
+
+        wasm.dijkstraModule._free(visitedPointer);
+        wasm.dijkstraModule._free(distPointer);
         wasm.dijkstraModule._weighted_graph_free(g);
         wasm.dijkstraModule._free(fromPointer);
         wasm.dijkstraModule._free(toPointer);
@@ -502,9 +573,9 @@ async function runAllBenchmarks() {
 
     // Matrix multiplication
     for (const size of SIZES) {
-        if (cancel) { 
-            console.log("Cancelling...")
-            return results 
+        if (cancel) {
+            console.log("Cancelling...");
+            return results;
         }
 
         console.log(`Loading matrix data. Size: ${size}...`);
