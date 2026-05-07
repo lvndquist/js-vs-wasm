@@ -225,7 +225,14 @@ speedup per algorithm combined over browsers
 javascript vs wasm per algorithm per browser comparison
 browser 
 
-To analyze the results data, a python script is used to generate graphs and tables. Combined statistics for summary are genereated into a html file './summary/summary.html'. Plots are saved in the 'plots' directory. 'all_algorithms_speedup' shows the combined speedup per algorithm, with data combined from both chrome and firefox. 'XX_browser_comparison' compares javascript and wasm for one specific algorithm 'XX' over chrome and firefox. "XX_YY_by_size" shows the mean time and standard deviation for alogrithm 'XX' on browser 'YY'.
+To analyze the results data, a python script is used to generate graphs and tables. Combined statistics for summary are genereated into a html file './summary/summary.html'. Plots are saved in the 'plots' directory. 
+- 'all_algorithms_speedup.png' shows the combined speedup per algorithm, with data combined from both chrome and firefox. 
+- 'XX_browser_comparison' compares javascript and wasm for one specific algorithm 'XX' over chrome and firefox. 
+- 'XX_YY_by_size.png' shows the mean time and standard deviation for alogrithm 'XX' on browser 'YY'.
+- 'XX_YY_speedup.png' shows the speedup for a algorithm 'XX' on browser 'YY'.
+- 'matrix_boundary_YY.png' shows the mean time of crossing the javascript/wasm boundary based on doing 1 call or n or n^2 calls in browser 'YY'.
+- 'no_op_overhead.png' shows how the execution time of no-ops adds up with the number of calls.
+- 'no_op_per_call.png' shows time per call in microseconds as the number of calls grows.
 
 Run the script as
 
