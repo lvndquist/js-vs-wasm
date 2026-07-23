@@ -4,7 +4,7 @@
 
 void matrix_multiplication(const double *A, const double *B, double *C, int n);
 
-/* Print a corner of the matrix.. top-left 3x3 */
+/* Print a corner of the matrix.. top-left 3x3*/
 static void print_matrix(const double *M, int n) {
     int edge = 3;
     int show = n < edge ? n : edge;
@@ -31,11 +31,14 @@ int main(int argc, char *argv[]) {
     snprintf(path, sizeof(path), "../../../datasets/matrix/%s.bin", size);
 
     MatrixData *md = load_matrix_data(path);
-    printf("Dataset : %s\n", path);
-    printf("Size    : %dx%d\n", md->n, md->n);
+    printf("Dataset: %s\n", path);
+    printf("Size: %dx%d\n", md->n, md->n);
 
     double *C = (double *)calloc(md->n * md->n, sizeof(double));
-    if (C == NULL) { fprintf(stderr, "malloc failed\n"); return 1; }
+    if (C == NULL) {
+        fprintf(stderr, "malloc failed\n");
+        return 1;
+    }
 
     matrix_multiplication(md->A, md->B, C, md->n);
 

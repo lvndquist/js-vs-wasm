@@ -119,7 +119,7 @@ export async function runAllBenchmarks() {
     for (const c of CALL_COUNT) {
         if (cancel) {
             console.log("Cancelling..");
-            return results; 
+            return results;
         }
 
         console.log(`Running no-op count: ${c}`);

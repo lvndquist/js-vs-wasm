@@ -73,66 +73,66 @@ Used by matrix multiplication.
 # Tests
 
 Each algorithm has a corresponding test file implemented both in C and JS, mainly for verification.
-`XX` represents a binary, which can be `small`, `medium`, `large` or `very_large`.
+`X` represents a binary, which can be `small`, `medium`, `large` or `very_large`.
 The C test files are run with gcc, and the Javascript test files are run with node.
 
 To run all tests use
 ```zsh
 chmod +x ./test.sh
-./test.sh XX
+./test.sh X
 ```
 
 ## Sorting
 ### Mergesort
 
 ```zsh
-gcc -O2 -o test_mergesort mergesort.c test_mergesort.c ../utils/utils.c && ./test_mergesort XX
+gcc -O2 -o test_mergesort mergesort.c test_mergesort.c ../utils/utils.c && ./test_mergesort X
 ```
 
 ```zsh
-node test_mergesort.mjs XX
+node test_mergesort.mjs X
 ```
 
 ### Quicksort
 
 ```zsh
-gcc -O2 -o test_quicksort quicksort.c test_quicksort.c ../utils/utils.c && ./test_quicksort XX
+gcc -O2 -o test_quicksort quicksort.c test_quicksort.c ../utils/utils.c && ./test_quicksort X
 ```
 
 ```zsh
-node test_quicksort.mjs XX
+node test_quicksort.mjs X
 ```
 
 ## Graphs
 ### BFS
 
 ```zsh
-  gcc -O2 -o test_bfs bfs.c test_bfs.c ../utils/utils.c && ./test_bfs XX
+  gcc -O2 -o test_bfs bfs.c test_bfs.c ../utils/utils.c && ./test_bfs X
 ```
 
 ```zsh
-node test_bfs.mjs XX
+node test_bfs.mjs X
 ```
 
 ### Dijikstra
 
 ```zsh
-gcc -O2 -o test_dijkstra dijkstra.c test_dijkstra.c ../utils/min_heap.c ../utils/utils.c && ./test_dijkstra XX
+gcc -O2 -o test_dijkstra dijkstra.c test_dijkstra.c ../utils/min_heap.c ../utils/utils.c && ./test_dijkstra X
 ```
 
 ```zsh
-node test_dijkstra.mjs XX
+node test_dijkstra.mjs X
 ```
 
 ## Matrix
 ## Matrix multiplication
 
 ```zsh
-gcc -O2 -o test_matrix_multiplication matrix_multiplication.c test_matrix_multiplication.c ../utils/utils.c && ./test_matrix_multiplication XX
+gcc -O2 -o test_matrix_multiplication matrix_multiplication.c test_matrix_multiplication.c ../utils/utils.c && ./test_matrix_multiplication X
 ```
 
 ```zsh
-node test_matrix_multiplication.mjs XX
+node test_matrix_multiplication.mjs X
 ```
 
 # WASM
@@ -219,18 +219,22 @@ emcc "src/c/overhead/overhead.c" -O2 -o "src/wasm/overhead/overhead.mjs" \
   -s ALLOW_MEMORY_GROWTH=1
 ```
 
-# Overhead
+Theres also a test file for overhead that can be run as:
 
-speedup per algorithm combined over browsers
-javascript vs wasm per algorithm per browser comparison
-browser 
+```zsh
+  gcc -O2 -o test_overhead overhead.c test_overhead.c ../utils/utils.c && ./test_overhead X
+```
+
+# Analysis
+
+After running the benchmarks, download the data and place into './analysis/result_data/'.
 
 To analyze the results data, a python script is used to generate graphs and tables. Combined statistics for summary are genereated into a html file './summary/summary.html'. Plots are saved in the 'plots' directory. 
 - 'all_algorithms_speedup.png' shows the combined speedup per algorithm, with data combined from both chrome and firefox. 
-- 'XX_browser_comparison' compares javascript and wasm for one specific algorithm 'XX' over chrome and firefox. 
-- 'XX_YY_by_size.png' shows the mean time and standard deviation for alogrithm 'XX' on browser 'YY'.
-- 'XX_YY_speedup.png' shows the speedup for a algorithm 'XX' on browser 'YY'.
-- 'matrix_boundary_YY.png' shows the mean time of crossing the javascript/wasm boundary based on doing 1 call or n or n^2 calls in browser 'YY'.
+- 'X_browser_comparison' compares javascript and wasm for one specific algorithm 'X' over chrome and firefox. 
+- 'X_Y_by_size.png' shows the mean time and standard deviation for alogrithm 'X' on browser 'Y'.
+- 'X_Y_speedup.png' shows the speedup for a algorithm 'X' on browser 'Y'.
+- 'matrix_boundary_Y.png' shows the mean time of crossing the javascript/wasm boundary based on doing 1 call or n or n^2 calls in browser 'Y'.
 - 'no_op_overhead.png' shows how the execution time of no-ops adds up with the number of calls.
 - 'no_op_per_call.png' shows time per call in microseconds as the number of calls grows.
 

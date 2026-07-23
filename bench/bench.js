@@ -103,7 +103,7 @@ async function loadGraphData(size) {
 }
 
 async function loadWeightedGraphData(size) {
-    const res = await fetch(`${DATA_ROOT}/graphs_weighted/${size}.bin`); // Fixed path naming
+    const res = await fetch(`${DATA_ROOT}/graphs_weighted/${size}.bin`);
     const buffer = await res.arrayBuffer();
     const view = new DataView(buffer);
 
