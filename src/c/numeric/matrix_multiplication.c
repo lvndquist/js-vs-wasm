@@ -1,5 +1,6 @@
 /*
  * Computes C = A * B where all matrices are n x n
+ * https://en.wikipedia.org/wiki/Matrix_multiplication_algorithm
  */
 void matrix_multiplication(const double *A, const double *B, double *C, int n) {
     for (int i = 0; i < n; i++) {

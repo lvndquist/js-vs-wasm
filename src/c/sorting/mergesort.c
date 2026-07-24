@@ -1,46 +1,108 @@
+// Merge sort Top-down implementation
+// https://en.wikipedia.org/wiki/Merge_sort
+
 #include <stdlib.h>
-#include <string.h>
 
-static void merge(int *arr, int *temp, int left, int mid, int right) {
-    int i = left, j = mid + 1, k = left;
-
-    while (i <= mid && j <= right) {
-        if (arr[i] <= arr[j]) {
-            temp[k++] = arr[i++];
-        }
-        else {
-            temp[k++] = arr[j++];
-        }
-    }
-    
-    while (i <= mid) {
-        temp[k++] = arr[i++];
-    }
-    
-    while (j <= right) {
-        temp[k++] = arr[j++];
-    }
-
-    for (int p = left; p <= right; p++) {
-        arr[p] = temp[p];
+// Copy a section of array a into array b (from begin to end - 1)
+void copyArray(int *a, int begin, int end, int *b) {
+    for (int k = begin; k < end; ++k) {
+        b[k] = a[k];
     }
 }
 
-static void merge_sort_rec(int *arr, int *temp, int left, int right) {
-    if (left >= right) return;
-    int mid = left + (right - left) / 2;
-    merge_sort_rec(arr, temp, left, mid);
-    merge_sort_rec(arr, temp, mid + 1, right);
-    merge(arr, temp, left, mid, right);
+// Merge two sorted halves (from a) into a single sorted run (into b)
+void topDownMerge(int *a, int begin, int middle, int end, int *b) {
+    int i = begin;
+    int j = middle;
+
+    // Merge the two sorted runs into b
+    for (int k = begin; k < end; ++k) {
+        if (i < middle && (j >= end || a[i] <= a[j])) {
+            b[k] = a[i]; // Take element from the left run
+            i++;
+        } else {
+            b[k] = a[j]; // Take element from the right run
+            j++;
+        }
+    }
+}
+
+// Split the array a into two halves, sort both halves into b,
+// and merge the sorted halves back into a
+void topDownSplitMerge(int *a, int begin, int end, int *b) {
+    if (end - begin <= 1) {
+        return; // Base case: Run size is 1, so it's already sorted
+    }
+
+    int middle = (begin + end) / 2; // Find the midpoint to split the array
+
+    // Recursively sort the left and right halves into b
+    topDownSplitMerge(b, begin, middle, a);
+    topDownSplitMerge(b, middle, end, a);
+
+    // Merge the sorted halves back into a
+    topDownMerge(b, begin, middle, end, a);
 }
 
 void merge_sort(int *arr, int n) {
     if (arr == NULL || n <= 1) return;
+
     int *temp = (int *)malloc(n * sizeof(int));
     if (temp == NULL) return;
-    merge_sort_rec(arr, temp, 0, n - 1);
+
+    copyArray(arr, 0, n, temp);
+    topDownSplitMerge(arr, 0, n, temp);
+
     free(temp);
 }
+
+
+
+
+
+// #include <stdlib.h>
+// #include <string.h>
+
+// static void merge(int *arr, int *temp, int left, int mid, int right) {
+//     int i = left, j = mid + 1, k = left;
+
+//     while (i <= mid && j <= right) {
+//         if (arr[i] <= arr[j]) {
+//             temp[k++] = arr[i++];
+//         }
+//         else {
+//             temp[k++] = arr[j++];
+//         }
+//     }
+    
+//     while (i <= mid) {
+//         temp[k++] = arr[i++];
+//     }
+    
+//     while (j <= right) {
+//         temp[k++] = arr[j++];
+//     }
+
+//     for (int p = left; p <= right; p++) {
+//         arr[p] = temp[p];
+//     }
+// }
+
+// static void merge_sort_rec(int *arr, int *temp, int left, int right) {
+//     if (left >= right) return;
+//     int mid = left + (right - left) / 2;
+//     merge_sort_rec(arr, temp, left, mid);
+//     merge_sort_rec(arr, temp, mid + 1, right);
+//     merge(arr, temp, left, mid, right);
+// }
+
+// void merge_sort(int *arr, int n) {
+//     if (arr == NULL || n <= 1) return;
+//     int *temp = (int *)malloc(n * sizeof(int));
+//     if (temp == NULL) return;
+//     merge_sort_rec(arr, temp, 0, n - 1);
+//     free(temp);
+// }
 
 // static void merge(int *arr, int left, int mid, int right) {
 //     int left_length = mid - left + 1;
