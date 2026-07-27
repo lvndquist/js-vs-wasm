@@ -16,19 +16,19 @@ int main(int argc, char *argv[]) {
 
     int n;
     int *original = load_sort_data(path, &n);
-    int *arr      = copy_array(original, n);
+    int *arr = copy_array(original, n);
 
     printf("------------\n");
     printf("Quick sort\n");
     printf("------------\n");
 
     printf("Dataset: %s\n", path);
-    printf("Input   (%d elements): ", n);
+    printf("Input (%d elements): ", n);
     print_array(original, n, 3);
 
     quick_sort(arr, n);
 
-    printf("Output  (%d elements): ", n);
+    printf("Output (%d elements): ", n);
     print_array(arr, n, 3);
 
     printf("%s\n", is_sorted(arr, n) ? "OK" : "FAIL");

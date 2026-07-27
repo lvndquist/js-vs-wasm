@@ -16,14 +16,14 @@ int main(int argc, char *argv[]) {
 
     int n;
     int *original = load_sort_data(path, &n);
-    int *arr      = copy_array(original, n);
+    int *arr = copy_array(original, n);
 
     printf("------------\n");
     printf("Mergesort\n");
     printf("------------\n");
 
     printf("Dataset: %s\n", path);
-    printf("Input   (%d elements): ", n);
+    printf("Input (%d elements): ", n);
     print_array(original, n, 3);
 
     merge_sort(arr, n);

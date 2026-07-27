@@ -1,42 +1,48 @@
+// https://en.wikipedia.org/wiki/Quicksort
 #include <stdlib.h>
 
-/*
- * Swaps two integers
- */
+// Swaps two integers
 static void swap(int *a, int *b) {
     int tmp = *a;
     *a = *b;
     *b = tmp;
 }
 
-/*
- * Partitions arr[left .. right] around the last element
- * Returns the final pivot index
- */
-static int partition(int *arr, int left, int right) {
-    int pivot = arr[right];
-    int i = left - 1;
+// Divides array into two partitions
+static int partition(int *arr, int lo, int hi) {
+    int pivot = arr[hi]; // Choose the last element as the pivot
 
-    for (int j = left; j < right; j++) {
+    // Temporary pivot index
+    int i = lo;
+
+    for (int j = lo; j < hi; j++) {
+        // If the current element is less than or equal to the pivot
         if (arr[j] <= pivot) {
-            swap(&arr[i + 1], &arr[j]);
+            // Swap the current element with the element at the temporary pivot index
+            swap(&arr[i], &arr[j]);
+            // Move the temporary pivot index forward
             i++;
         }
     }
-    swap(&arr[i + 1], &arr[right]);
-    return i + 1;
+
+    // Swap the pivot with the last element
+    swap(&arr[i], &arr[hi]);
+    return i; // the pivot index
 }
 
-/*
- * Quick sort
- * Sorts arr[left .. right] ascending order
- */
-static void quick_sort_recursive(int *arr, int left, int right) {
-    if (left >= right) return;
+// Sorts (a portion of) an array, divides it into partitions, then sorts those
+static void quicksort(int *arr, int lo, int hi) {
+    // Ensure indices are in correct order
+    if (lo >= hi || lo < 0) {
+        return;
+    }
 
-    int pivot_index = partition(arr, left, right);
-    quick_sort_recursive(arr, left, pivot_index - 1);
-    quick_sort_recursive(arr, pivot_index + 1, right);
+    // Partition array and get the pivot index
+    int p = partition(arr, lo, hi);
+
+    // Sort the two partitions
+    quicksort(arr, lo, p - 1); // Left side of pivot
+    quicksort(arr, p + 1, hi); // Right side of pivot
 }
 
 /*
@@ -44,5 +50,5 @@ static void quick_sort_recursive(int *arr, int left, int right) {
  */
 void quick_sort(int *arr, int n) {
     if (arr == NULL || n <= 1) return;
-    quick_sort_recursive(arr, 0, n - 1);
+    quicksort(arr, 0, n - 1);
 }
