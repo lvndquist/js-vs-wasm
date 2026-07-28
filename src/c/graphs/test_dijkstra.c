@@ -17,6 +17,7 @@ int main(int argc, char *argv[]) {
     snprintf(path, sizeof(path), "../../../datasets/graphs_weighted/%s.bin", size);
 
     WeightedGraphData *gd = load_weighted_graph_data(path);
+    printf("Dijkstra\n");
     printf("Dataset: %s\n", path);
     printf("Loaded: %d nodes, %d edges\n", gd->num_nodes, gd->num_edges);
 
@@ -36,14 +37,17 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    printf("Dijkstra from node 0:\n");
-    printf("Reachable nodes : %d / %d\n", reachable, g->num_nodes);
-    printf("Max distance    : %.2f\n", max_dist);
-    printf("dist[0]         : %.2f\n", dist[0]);
-    printf("dist[1]         : %.2f\n", dist[1]);
-    printf("dist[2]         : %.2f\n", dist[2]);
-    printf("dist[3]         : %.2f\n", dist[3]);
+    // printf("Dijkstra from node 0:\n");
+    // printf("Reachable nodes : %d / %d\n", reachable, g->num_nodes);
+    // printf("Max distance    : %.2f\n", max_dist);
+    // printf("dist[0]         : %.2f\n", dist[0]);
+    // printf("dist[1]         : %.2f\n", dist[1]);
+    // printf("dist[2]         : %.2f\n", dist[2]);
+    // printf("dist[3]         : %.2f\n", dist[3]);
 
+    printf("RESULT {\"nodes\":%d,\"reachable\":%d,\"max_dist\":\"%.2f\",\"dist0\":\"%.2f\",\"dist1\":\"%.2f\",\"dist2\":\"%.2f\",\"dist3\":\"%.2f\"}\n",
+    g->num_nodes, reachable, max_dist, dist[0], dist[1], dist[2], dist[3]);
+    
     free(dist);
     free(visited);
     weighted_graph_free(g);

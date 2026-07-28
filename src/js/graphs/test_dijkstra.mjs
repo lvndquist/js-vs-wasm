@@ -52,15 +52,26 @@ dijkstra(graphData, 0, dist, visited);
 const reachable = Array.from(dist).filter(d => d < 1e18).length;
 const maxDist = Array.from(dist).filter(d => d < 1e18).reduce((a, b) => Math.max(a, b), 0);
 
-console.log('------------');
+// console.log('------------');
+// console.log('Dijkstra');
+// console.log('------------');
+// console.log(`Dataset: ${path}`);
+// console.log(`Loaded: ${numOfNodes} nodes, ${numOfEdges} edges`);
+// console.log(`Dijkstra from node 0: `);
+// console.log(`Reachable nodes : ${reachable} / ${numOfNodes}`);
+// console.log(`Max distance    : ${maxDist.toFixed(2)}`);
+// console.log(`dist[0]         : ${dist[0].toFixed(2)}`);
+// console.log(`dist[1]         : ${dist[1].toFixed(2)}`);
+// console.log(`dist[2]         : ${dist[2].toFixed(2)}`);
+// console.log(`dist[3]         : ${dist[3].toFixed(2)}`);
+
 console.log('Dijkstra');
-console.log('------------');
-console.log(`Dataset: ${path}`);
-console.log(`Loaded: ${numOfNodes} nodes, ${numOfEdges} edges`);
-console.log(`Dijkstra from node 0: `);
-console.log(`Reachable nodes : ${reachable} / ${numOfNodes}`);
-console.log(`Max distance    : ${maxDist.toFixed(2)}`);
-console.log(`dist[0]         : ${dist[0].toFixed(2)}`);
-console.log(`dist[1]         : ${dist[1].toFixed(2)}`);
-console.log(`dist[2]         : ${dist[2].toFixed(2)}`);
-console.log(`dist[3]         : ${dist[3].toFixed(2)}`);
+console.log('RESULT', JSON.stringify({
+    nodes: numOfNodes,
+    reachable,
+    max_dist: maxDist.toFixed(2),
+    dist0: dist[0].toFixed(2),
+    dist1: dist[1].toFixed(2),
+    dist2: dist[2].toFixed(2),
+    dist3: dist[3].toFixed(2)
+}));

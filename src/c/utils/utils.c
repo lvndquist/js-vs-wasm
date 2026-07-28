@@ -24,6 +24,41 @@ int *copy_array(const int *arr, int n) {
     return copy;
 }
 
+/* Print a corner of the matrix.. top-left 3x3*/
+void print_matrix(const double *M, int n) {
+    int edge = 3;
+    int show = n < edge ? n : edge;
+
+    for (int i = 0; i < show; i++) {
+        printf("  [");
+        for (int j = 0; j < show; j++) {
+            printf("%8.2f", M[i * n + j]);
+            if (j < show - 1) printf(", ");
+        }
+        if (n > edge) {
+            printf(",  ...");
+        }
+        printf("]\n");
+    }
+    if (n > edge) printf("  ...\n");
+}
+
+double matrix_checksum(const double *M, int n) {
+    double checksum = 0.0;
+    for (int i = 0; i < n * n; i++) {
+        checksum += M[i];
+    }
+    return checksum;
+}
+
+long long array_checksum(const int *arr, int n) {
+    long long checksum = 0;
+    for (int i = 0; i < n; i++) {
+        checksum += arr[i];
+    }
+    return checksum;
+}
+
 int is_sorted(const int *arr, int n) {
     for (int i = 0; i < n - 1; i++) {
         if (arr[i] > arr[i + 1]) {
@@ -72,7 +107,7 @@ GraphData *load_graph_data(const char *path) {
 
     for (int i = 0; i < gd->num_edges; i++) {
         fread(&gd->from[i], sizeof(int), 1, f);
-        fread(&gd->to[i],   sizeof(int), 1, f);
+        fread(&gd->to[i], sizeof(int), 1, f);
     }
 
     fclose(f);
@@ -93,13 +128,13 @@ WeightedGraphData *load_weighted_graph_data(const char *path) {
     fread(&gd->num_nodes, sizeof(int), 1, f);
     fread(&gd->num_edges, sizeof(int), 1, f);
 
-    gd->from   = (int *)malloc(gd->num_edges * sizeof(int));
-    gd->to     = (int *)malloc(gd->num_edges * sizeof(int));
+    gd->from = (int *)malloc(gd->num_edges * sizeof(int));
+    gd->to = (int *)malloc(gd->num_edges * sizeof(int));
     gd->weight = (double *)malloc(gd->num_edges * sizeof(double));
 
     for (int i = 0; i < gd->num_edges; i++) {
-        fread(&gd->from[i],   sizeof(int),    1, f);
-        fread(&gd->to[i],     sizeof(int),    1, f);
+        fread(&gd->from[i], sizeof(int), 1, f);
+        fread(&gd->to[i], sizeof(int), 1, f);
         fread(&gd->weight[i], sizeof(double), 1, f);
     }
 

@@ -70,8 +70,13 @@ async function loadGraphData(size) {
     const numOfNodes = view.getInt32(0, true);
     const numOfEdges = view.getInt32(4, true);
 
-    const from = new Int32Array(buffer, 8, numOfEdges);
-    const to = new Int32Array(buffer, 8 + numOfEdges * 4, numOfEdges);
+    const edgePairs = new Int32Array(buffer, 8, numOfEdges * 2);
+    const from = new Int32Array(numOfEdges);
+    const to = new Int32Array(numOfEdges);
+    for (let i = 0; i < numOfEdges; i++) {
+        from[i] = edgePairs[i * 2];
+        to[i] = edgePairs[i * 2 + 1];
+    }
 
     const offsets = new Int32Array(numOfNodes + 1);
     const neighbors = new Int32Array(numOfEdges);
@@ -81,7 +86,6 @@ async function loadGraphData(size) {
     }
 
     offsets[0] = 0;
-
     for (let i = 0; i < numOfNodes; i++) {
         offsets[i + 1] = offsets[i] + counts[i];
     }

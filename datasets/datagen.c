@@ -122,9 +122,9 @@ static void generate_graphs(unsigned int seed) {
         }
 
         FILE *f = open_file(path);
-        fwrite(&n,         sizeof(int),  1,         f);
-        fwrite(&num_edges, sizeof(int),  1,         f);
-        fwrite(edges,      sizeof(Edge), num_edges, f);
+        fwrite(&n, sizeof(int), 1, f);
+        fwrite(&num_edges, sizeof(int), 1, f);
+        fwrite(edges, sizeof(Edge), num_edges, f);
         fclose(f);
         free(edges);
     }
@@ -135,8 +135,8 @@ static void generate_graphs(unsigned int seed) {
  * --------------------------- */
 
 typedef struct {
-    int    from;
-    int    to;
+    int from;
+    int to;
     double weight;
 } WeightedEdge;
 
@@ -144,7 +144,7 @@ static void generate_weighted_graphs(unsigned int seed) {
     make_dir("graphs_weighted");
 
     for (int s = 0; s < GRAPH_COUNT; s++) {
-        int n         = GRAPH_NODES[s];
+        int n = GRAPH_NODES[s];
         int per_node  = GRAPH_EDGES_PER[s];
         int num_edges = n * per_node;
 
@@ -175,9 +175,9 @@ static void generate_weighted_graphs(unsigned int seed) {
         }
 
         FILE *f = open_file(path);
-        fwrite(&n,         sizeof(int),          1,         f);
-        fwrite(&num_edges, sizeof(int),          1,         f);
-        fwrite(edges,      sizeof(WeightedEdge), num_edges, f);
+        fwrite(&n, sizeof(int), 1, f);
+        fwrite(&num_edges, sizeof(int), 1, f);
+        fwrite(edges, sizeof(WeightedEdge), num_edges, f);
         fclose(f);
         free(edges);
     }
@@ -191,14 +191,13 @@ static void generate_matrix(unsigned int seed) {
     make_dir("matrix");
 
     for (int s = 0; s < MATRIX_COUNT; s++) {
-        int n        = MATRIX_SIZES[s];
+        int n = MATRIX_SIZES[s];
         int elements = n * n;
 
         char path[256];
         snprintf(path, sizeof(path), "matrix/%s.bin", MATRIX_NAMES[s]);
 
-        printf("Generating matrix/%s.bin (%dx%d matrices)...\n",
-               MATRIX_NAMES[s], n, n);
+        printf("Generating matrix/%s.bin (%dx%d matrices)...\n", MATRIX_NAMES[s], n, n);
 
         double *mat = (double *)malloc(2 * elements * sizeof(double));
         if (mat == NULL) { fprintf(stderr, "malloc failed\n"); exit(1); }
@@ -209,8 +208,8 @@ static void generate_matrix(unsigned int seed) {
         }
 
         FILE *f = open_file(path);
-        fwrite(&n,   sizeof(int),    1,            f);
-        fwrite(mat,  sizeof(double), 2 * elements, f);
+        fwrite(&n, sizeof(int), 1, f);
+        fwrite(mat, sizeof(double), 2 * elements, f);
         fclose(f);
         free(mat);
     }

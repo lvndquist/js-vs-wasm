@@ -88,8 +88,7 @@ int main(int argc, char *argv[]) {
     for (int k = 0; k < n; k++) {
         expected += md->A[k] * md->B[k * n];
     }
-    printf("C[0][0] check: \nfull=%.4f \nrow=%.4f \ncell=%.4f \nexpected=%.4f\n",
-           C_full[0], C_row[0], C_cell[0], expected);
+    printf("C[0][0] check: \nfull=%.4f \nrow=%.4f \ncell=%.4f \nexpected=%.4f\n", C_full[0], C_row[0], C_cell[0], expected);
 
     int full_ok = (C_full[0] - expected < 1e-6 && C_full[0] - expected > -1e-6);
     int row_vs_full = matrices_equal(C_row, C_full, n, 1e-6);

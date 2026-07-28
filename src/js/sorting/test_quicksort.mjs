@@ -2,6 +2,7 @@ import { readFileSync } from 'fs';
 import { quick_sort } from './quicksort.mjs';
 import { printArray } from '../utils/utils.mjs';
 import { isSorted } from '../utils/utils.mjs';
+import { arrayChecksum } from '../utils/utils.mjs';
 
 const size = process.argv[2] || 'small';
 const path = `../../../datasets/sorting/${size}.bin`;
@@ -15,9 +16,7 @@ const sorted = arr.slice();
 
 quick_sort(sorted, sorted.length);
 
-console.log('------------');
 console.log('Quick sort');
-console.log('------------');
 console.log(`Dataset: ${path}`);
 console.log(`Input (${n} elements):`);
 console.log(printArray(original, 3));
@@ -25,4 +24,18 @@ console.log(printArray(original, 3));
 console.log(`Output (${n} elements):`);
 console.log(printArray(sorted, 3));
 
-console.log(isSorted(sorted) ? 'OK' : 'FAIL');
+// console.log(isSorted(sorted) ? 'OK' : 'FAIL');
+
+const arraySorted = isSorted(sorted);
+const sumIn = arrayChecksum(original);
+const sumOut = arrayChecksum(sorted);
+const sameSum = sumIn === sumOut;
+
+console.log('RESULT', JSON.stringify({
+    n,
+    sorted: arraySorted,
+    same_sum: sameSum,
+    first: sorted[0],
+    last: sorted[n - 1],
+    checksum: sumOut.toString()
+}));

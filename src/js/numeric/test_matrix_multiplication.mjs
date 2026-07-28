@@ -1,5 +1,6 @@
 import { readFileSync } from 'fs';
 import { matrix_multiplication } from './matrix_multiplication.mjs';
+import { matrixChecksum } from '../utils/utils.mjs';
 
 const size = process.argv[2] || 'small';
 const path = `../../../datasets/matrix/${size}.bin`;
@@ -28,10 +29,12 @@ for (let k = 0; k < n; k++) {
 
 const diff = Math.abs(C[0] - expected);
 
-console.log('------------');
 console.log('Matrix multiplication');
-console.log('------------');
 console.log(`Dataset : ${path}`);
 console.log(`Size    : ${n}x${n}`);
 console.log(`C[0][0] check: ${C[0].toFixed(4)} (computed) vs ${expected.toFixed(4)} (expected)`);
 console.log(diff < 1e-6 ? 'OK' : 'FAIL');
+
+console.log('RESULT', JSON.stringify({
+  n, c00: Number(C[0].toFixed(4)), checksum: Number(matrixChecksum(C, n).toFixed(4))
+}));

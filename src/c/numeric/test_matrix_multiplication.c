@@ -4,25 +4,6 @@
 
 void matrix_multiplication(const double *A, const double *B, double *C, int n);
 
-/* Print a corner of the matrix.. top-left 3x3*/
-static void print_matrix(const double *M, int n) {
-    int edge = 3;
-    int show = n < edge ? n : edge;
-
-    for (int i = 0; i < show; i++) {
-        printf("  [");
-        for (int j = 0; j < show; j++) {
-            printf("%8.2f", M[i * n + j]);
-            if (j < show - 1) printf(", ");
-        }
-        if (n > edge) {
-            printf(",  ...");
-        }
-        printf("]\n");
-    }
-    if (n > edge) printf("  ...\n");
-}
-
 int main(int argc, char *argv[]) {
     const char *size = "small";
     if (argc >= 2) size = argv[1];
@@ -31,6 +12,7 @@ int main(int argc, char *argv[]) {
     snprintf(path, sizeof(path), "../../../datasets/matrix/%s.bin", size);
 
     MatrixData *md = load_matrix_data(path);
+    printf("Matrix Multiplication\n");
     printf("Dataset: %s\n", path);
     printf("Size: %dx%d\n", md->n, md->n);
 
@@ -56,10 +38,12 @@ int main(int argc, char *argv[]) {
     for (int k = 0; k < md->n; k++) {
         expected += md->A[k] * md->B[k * md->n];
     }
-    printf("C[0][0] check: %.4f (computed) vs %.4f (expected) \n%s\n",
-           C[0], expected,
-           (C[0] - expected < 1e-6 && C[0] - expected > -1e-6) ? "OK" : "FAIL");
+    printf("C[0][0] check: %.4f (computed) vs %.4f (expected) \n%s\n", C[0], expected,
+    (C[0] - expected < 1e-6 && C[0] - expected > -1e-6) ? "OK" : "FAIL");
 
+    double checksum = matrix_checksum(C, md->n);
+
+    printf("RESULT {\"n\":%d,\"c00\":%.4f,\"checksum\":%.4f}\n", md->n, C[0], checksum);
     free(C);
     free_matrix_data(md);
     return 0;

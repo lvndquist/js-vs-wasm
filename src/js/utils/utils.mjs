@@ -17,3 +17,19 @@ export function isSorted(arr) {
     }
     return true;
 }
+
+export function matrixChecksum(M, n) {
+    let checksum = 0.0;
+    for (let i = 0; i < n * n; i++) {
+        checksum += M[i];
+    }
+    return checksum;
+}
+
+export function arrayChecksum(a) {
+  let checksum = 0n;
+  for (let i = 0; i < a.length; i++) {
+    checksum += BigInt(a[i]);
+  }
+  return checksum;
+}

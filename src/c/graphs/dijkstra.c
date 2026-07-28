@@ -2,7 +2,7 @@
 #include "dijkstra.h"
 #include "../utils/min_heap.h"
 
-/* 
+/*
  * Creates an empty weighted graph with the given number of nodes.
  * The graph is represented in a compressed sparse row (CSR) format
  */

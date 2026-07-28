@@ -1,3 +1,7 @@
+/*
+ * Computes C = A * B where all matrices are n x n
+ * https://en.wikipedia.org/wiki/Matrix_multiplication_algorithm
+ */
 export function matrix_multiplication(A, B, C, n) {
     for (let i = 0; i < n; i++) {
         for (let j = 0; j < n; j++) {

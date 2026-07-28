@@ -18,20 +18,29 @@ int main(int argc, char *argv[]) {
     int *original = load_sort_data(path, &n);
     int *arr = copy_array(original, n);
 
-    printf("------------\n");
     printf("Mergesort\n");
-    printf("------------\n");
-
     printf("Dataset: %s\n", path);
     printf("Input (%d elements): ", n);
     print_array(original, n, 3);
 
     merge_sort(arr, n);
 
-    printf("Output  (%d elements): ", n);
+    printf("Output (%d elements): ", n);
     print_array(arr, n, 3);
 
-    printf("%s\n", is_sorted(arr, n) ? "OK" : "FAIL");
+    int sorted = is_sorted(arr, n);
+    long long sum_in = array_checksum(original, n);
+    long long sum_out = array_checksum(arr, n);
+    int same_sum = (sum_in == sum_out);
+
+    printf("RESULT {\"n\":%d,\"sorted\":%s,\"same_sum\":%s,\"first\":%d,\"last\":%d,\"checksum\":\"%lld\"}\n",
+        n,
+        sorted ? "true" : "false",
+        same_sum ? "true" : "false",
+        arr[0],
+        arr[n - 1],
+        sum_out
+    );
 
     free(original);
     free(arr);

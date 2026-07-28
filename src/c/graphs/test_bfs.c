@@ -17,13 +17,17 @@ int main(int argc, char *argv[]) {
     snprintf(path, sizeof(path), "../../../datasets/graphs/%s.bin", pathType);
 
     GraphData *gd = load_graph_data(path);
+    printf("BFS\n");
     printf("Dataset: %s\n", path);
     printf("Loaded: %d nodes, %d edges\n", gd->num_nodes, gd->num_edges);
+
+    // printf("from[0..4]: %d %d %d %d %d\n", gd->from[0], gd->from[1], gd->from[2], gd->from[3], gd->from[4]);
+    // printf("to[0..4]: %d %d %d %d %d\n", gd->to[0], gd->to[1], gd->to[2], gd->to[3], gd->to[4]);
 
     Graph *g = build_graph(gd);
 
     int *visited = (int *)malloc(g->num_nodes * sizeof(int));
-    int *dist    = (int *)malloc(g->num_nodes * sizeof(int));
+    int *dist = (int *)malloc(g->num_nodes * sizeof(int));
 
     bfs(g, 0, visited, dist);
 
@@ -35,13 +39,16 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    printf("BFS from node 0:\n");
-    printf("Reachable nodes : %d / %d\n", reachable, g->num_nodes);
-    printf("Max distance    : %d\n", max_dist);
-    printf("dist[0]         : %d\n", dist[0]);
-    printf("dist[1]         : %d\n", dist[1]);
-    printf("dist[2]         : %d\n", dist[2]);
-    printf("dist[3]         : %d\n", dist[3]);
+    // printf("BFS from node 0:\n");
+    // printf("Reachable nodes : %d / %d\n", reachable, g->num_nodes);
+    // printf("Max distance    : %d\n", max_dist);
+    // printf("dist[0]         : %d\n", dist[0]);
+    // printf("dist[1]         : %d\n", dist[1]);
+    // printf("dist[2]         : %d\n", dist[2]);
+    // printf("dist[3]         : %d\n", dist[3]);
+
+    printf("RESULT {\"nodes\":%d,\"reachable\":%d,\"max_dist\":%d,\"dist0\":%d,\"dist1\":%d,\"dist2\":%d,\"dist3\":%d}\n",
+    g->num_nodes, reachable, max_dist, dist[0], dist[1], dist[2], dist[3]);
 
     free(visited);
     free(dist);

@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+long long array_checksum(const int *arr, int n);
+void print_matrix(const double *M, int n);
+double matrix_checksum(const double *M, int n);
+
 /* -------------------------
  * Sorting
  * ------------------------- */
