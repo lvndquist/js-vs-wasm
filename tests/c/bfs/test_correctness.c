@@ -64,7 +64,9 @@ int main() {
     for (int i = 0; i < g->num_nodes; i++) {
         if (visited[i]) {
             reachable++;
-            if (dist[i] > max_dist) max_dist = dist[i];
+            if (dist[i] > max_dist) {
+                max_dist = dist[i];
+            }
         }
     }
 

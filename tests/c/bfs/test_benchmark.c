@@ -31,11 +31,16 @@ int main(int argc, char *argv[]) {
 
     bfs(g, 0, visited, dist);
 
-    int reachable = 0, max_dist = 0;
+    int checksum = 0;
+    int reachable = 0;
+    int max_dist = 0;
     for (int i = 0; i < g->num_nodes; i++) {
         if (visited[i]) {
             reachable++;
-            if (dist[i] > max_dist) max_dist = dist[i];
+            if (dist[i] > max_dist) {
+                max_dist = dist[i];
+            }
+            checksum += dist[i];
         }
     }
 
@@ -47,8 +52,8 @@ int main(int argc, char *argv[]) {
     // printf("dist[2]         : %d\n", dist[2]);
     // printf("dist[3]         : %d\n", dist[3]);
 
-    printf("RESULT {\"nodes\":%d,\"reachable\":%d,\"max_dist\":%d,\"dist0\":%d,\"dist1\":%d,\"dist2\":%d,\"dist3\":%d}\n",
-    g->num_nodes, reachable, max_dist, dist[0], dist[1], dist[2], dist[3]);
+    printf("RESULT {\"nodes\":%d,\"reachable\":%d,\"max_dist\":%d,\"checksum\":%d}\n",
+    g->num_nodes, reachable, max_dist, checksum);
 
     free(visited);
     free(dist);

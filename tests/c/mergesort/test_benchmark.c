@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
     if (argc >= 2) pathType = argv[1];
 
     char path[256];
-    snprintf(path, sizeof(path), "../../../datasets/sorting/%s.bin", pathType);
+    snprintf(path, sizeof(path), "../../../datasets/benchmark/sorting/%s.bin", pathType);
 
     int n;
     int *original = load_sort_data(path, &n);

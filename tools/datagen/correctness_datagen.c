@@ -121,7 +121,7 @@ typedef struct {
  * reachable = 6
  * max_dist = 3
  *
- * dist:
+ * Expected distances from source 0:
  * 0 -> 0
  * 1 -> 1
  * 2 -> 1
@@ -193,6 +193,11 @@ typedef struct {
  *     v
  *     3
  *
+ * Expected output:
+ * nodes = 4
+ * reachable = 4
+ * max_dist = 4.0
+ * 
  * Expected distances from source 0:
  * 0 -> 0
  * 1 -> 1
@@ -201,7 +206,7 @@ typedef struct {
  *
  **/
 static void generate_dijkstra_connected_correctness() {
-    printf("Generating correctness/graphs_weighted/basic_input.bin...\n");
+    printf("Generating correctness/graphs_weighted/connected_input.bin...\n");
     make_dir("correctness/graphs_weighted");
 
     int n = 4;
@@ -217,29 +222,33 @@ static void generate_dijkstra_connected_correctness() {
     int source = 0;
 
     FILE *f = open_file(
-        "correctness/graphs_weighted/basic_input.bin"
+        "correctness/graphs_weighted/connected_input.bin"
     );
 
     fwrite(&n, sizeof(int), 1, f);
     fwrite(&num_edges, sizeof(int), 1, f);
     fwrite(edges, sizeof(WeightedEdge), num_edges, f);
-    fwrite(&source, sizeof(int), 1, f);
 
     fclose(f);
 
-    double expected[] = {
+    double dist[] = {
         0.0, // shortest distance to self
         1.0, // shortest distance to node 1
         3.0, // shortest distance to node 2 (instead of 4.0)
         4.0 // shortest distance to node 3 (via node 2)
     };
 
+    int reachable = 4;
+    double max_dist = 4.0;
+
     f = open_file(
-        "correctness/graphs_weighted/basic_expected.bin"
+        "correctness/graphs_weighted/connected_expected.bin"
     );
 
     fwrite(&n, sizeof(int), 1, f);
-    fwrite(expected, sizeof(double), n, f);
+    fwrite(&reachable, sizeof(int), 1, f);
+    fwrite(&max_dist, sizeof(double), 1, f);
+    fwrite(dist, sizeof(double), n, f);
 
     fclose(f);
 }
@@ -251,7 +260,12 @@ static void generate_dijkstra_connected_correctness() {
  * 0 --1--> 1 --2--> 2
  *
  * 3
- *
+ * 
+ * Expected output:
+ * nodes = 4
+ * reachable = 3
+ * max_dist = 3.0
+ * 
  * Expected distances from source 0:
  * 0 -> 0
  * 1 -> 1
@@ -280,23 +294,27 @@ static void generate_dijkstra_disconnected_correctness() {
     fwrite(&n, sizeof(int), 1, f);
     fwrite(&num_edges, sizeof(int), 1, f);
     fwrite(edges, sizeof(WeightedEdge), num_edges, f);
-    fwrite(&source, sizeof(int), 1, f);
 
     fclose(f);
 
-    double expected[] = {
+    double dist[] = {
         0.0,
         1.0,
         3.0,
         INFINITY
     };
 
+    int reachable = 3;
+    double max_dist = 3.0;
+
     f = open_file(
         "correctness/graphs_weighted/disconnected_expected.bin"
     );
 
     fwrite(&n, sizeof(int), 1, f);
-    fwrite(expected, sizeof(double), n, f);
+    fwrite(&reachable, sizeof(int), 1, f);
+    fwrite(&max_dist, sizeof(double), 1, f);
+    fwrite(dist, sizeof(double), n, f);
 
     fclose(f);
 }

@@ -27,13 +27,17 @@ int main(int argc, char *argv[]) {
     int *visited = (int *)malloc(g->num_nodes * sizeof(int));
     dijkstra(g, 0, dist, visited);
 
-    /* Count reachable nodes and find max distance */
+    //Count reachable nodes and find max distance
     int reachable = 0;
     double max_dist = 0.0;
+    double checksum = 0.0;
     for (int i = 0; i < g->num_nodes; i++) {
-        if (dist[i] < 1e18) {
+        if (visited[i]) {
             reachable++;
-            if (dist[i] > max_dist) max_dist = dist[i];
+            if (dist[i] > max_dist) {
+                max_dist = dist[i];
+            }
+            checksum += dist[i];
         }
     }
 
@@ -45,8 +49,8 @@ int main(int argc, char *argv[]) {
     // printf("dist[2]         : %.2f\n", dist[2]);
     // printf("dist[3]         : %.2f\n", dist[3]);
 
-    printf("RESULT {\"nodes\":%d,\"reachable\":%d,\"max_dist\":\"%.2f\",\"dist0\":\"%.2f\",\"dist1\":\"%.2f\",\"dist2\":\"%.2f\",\"dist3\":\"%.2f\"}\n",
-    g->num_nodes, reachable, max_dist, dist[0], dist[1], dist[2], dist[3]);
+    printf("RESULT {\"nodes\":%d,\"reachable\":%d,\"max_dist\":\"%.4f\",\"checksum\":\"%.4f\"}\n",
+    g->num_nodes, reachable, max_dist, checksum);
     
     free(dist);
     free(visited);
