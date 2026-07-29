@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "../utils/utils.h"
+#include "../../../src/c/utils/utils.h"
 
 void matrix_multiplication(const double *A, const double *B, double *C, int n);
 

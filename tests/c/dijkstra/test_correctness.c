@@ -22,7 +22,7 @@ static int dist_equal(double a, double b) {
     }
 
     if ((a >= INFINITY) || (b >= INFINITY)) {
-        return 1;
+        return 0;
     }
 
     return a == b;
