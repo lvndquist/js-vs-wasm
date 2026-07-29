@@ -35,16 +35,11 @@ static ExpectedBFS *load_expected(const char *path) {
     return expected;
 }
 
-int main() {
-
-    char input_path[256];
-    snprintf(input_path, sizeof(input_path), "../../../datasets/correctness/graphs/basic_input.bin");
+static void run_case(const char *label, const char *input_path, const char *expected_path) {
     GraphData *gd = load_graph_data(input_path);
     printf("BFS\n");
     printf("Loaded: %d nodes, %d edges\n", gd->num_nodes, gd->num_edges);
 
-    char expected_path[256];
-    snprintf(expected_path, sizeof(expected_path), "../../../datasets/correctness/graphs/basic_expected.bin");
     ExpectedBFS *expected = load_expected(expected_path);
 
     if (expected == NULL) {
@@ -57,7 +52,6 @@ int main() {
 
     int *visited = (int *)malloc(g->num_nodes * sizeof(int));
     int *dist = (int *)malloc(g->num_nodes * sizeof(int));
-
     bfs(g, 0, visited, dist);
 
     int reachable = 0, max_dist = 0;
@@ -101,5 +95,22 @@ int main() {
     free_graph(gd);
     free(expected->dist);
     free(expected);
+    return 0;
+}
+
+int main() {
+
+    char connected_input_path[256];
+    char connected_expected_path[256];
+    char disconnected_input_path[256];
+    char disconnected_expected_path[256];
+    snprintf(connected_input_path, sizeof(connected_input_path), "../../../datasets/correctness/graphs/connected_input.bin");
+    snprintf(connected_expected_path, sizeof(connected_expected_path), "../../../datasets/correctness/graphs/connected_expected.bin");
+    snprintf(disconnected_input_path, sizeof(disconnected_input_path), "../../../datasets/correctness/graphs/disconnected_input.bin");
+    snprintf(disconnected_expected_path, sizeof(disconnected_expected_path), "../../../datasets/correctness/graphs/disconnected_expected.bin");
+    
+    run_case("connected", connected_input_path, connected_expected_path);
+    run_case("disconnected", disconnected_input_path, disconnected_expected_path);
+    
     return 0;
 }
