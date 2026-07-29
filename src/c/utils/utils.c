@@ -102,8 +102,10 @@ GraphData *load_graph_data(const char *path) {
     fread(&gd->num_edges, sizeof(int), 1, f);
 
     gd->from = (int *)malloc(gd->num_edges * sizeof(int));
-    gd->to   = (int *)malloc(gd->num_edges * sizeof(int));
-    if (gd->from == NULL || gd->to == NULL) { fprintf(stderr, "malloc failed\n"); exit(1); }
+    gd->to = (int *)malloc(gd->num_edges * sizeof(int));
+    if (gd->from == NULL || gd->to == NULL) {
+        fprintf(stderr, "malloc failed\n"); exit(1);
+    }
 
     for (int i = 0; i < gd->num_edges; i++) {
         fread(&gd->from[i], sizeof(int), 1, f);
