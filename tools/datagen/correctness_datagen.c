@@ -129,8 +129,8 @@ typedef struct {
  * 4 -> 2
  * 5 -> 3
  **/
-static void generate_bfs_correctness() {
-    printf("Generating correctness/graphs/basic_input.bin...\n");
+static void generate_connected_graph_correctness() {
+    printf("Generating correctness/graphs/connected_input.bin...\n");
     make_dir("correctness/graphs");
 
     int n = 6;
@@ -144,7 +144,7 @@ static void generate_bfs_correctness() {
         {3, 5}
     };
 
-    FILE *f = open_file("correctness/graphs/basic_input.bin");
+    FILE *f = open_file("correctness/graphs/connected_input.bin");
 
     fwrite(&n, sizeof(int), 1, f);
     fwrite(&num_edges, sizeof(int), 1, f);
@@ -156,7 +156,63 @@ static void generate_bfs_correctness() {
     int max_dist = 3;
     int dist[] = {0, 1, 1, 2, 2, 3};
 
-    f = open_file("correctness/graphs/basic_expected.bin");
+    f = open_file("correctness/graphs/connected_expected.bin");
+
+    fwrite(&n, sizeof(int), 1, f);
+    fwrite(&reachable, sizeof(int), 1, f);
+    fwrite(&max_dist, sizeof(int), 1, f);
+    fwrite(dist, sizeof(int), n, f);
+
+    fclose(f);
+}
+
+/**
+ * Input graph for BFS correctness test:
+ * n = 6, num_edges = 3
+ *
+ * 0 ---> 1 ---> 2
+ * 3 ---> 4
+ * 5
+ *
+ * Expected output:
+ * nodes = 6
+ * reachable = 3
+ * max_dist = 2
+ *
+ * Expected distances from source 0:
+ * 0 -> 0
+ * 1 -> 1
+ * 2 -> 2
+ * 3 -> -1
+ * 4 -> -1
+ * 5 -> -1
+ **/
+static void generate_disconnected_graph_correctness() {
+    printf("Generating correctness/graphs/disconnected_input.bin...\n");
+    make_dir("correctness/graphs");
+
+    int n = 6;
+    int num_edges = 3;
+
+    Edge edges[] = {
+        {0, 1},
+        {1, 2},
+        {3, 4}
+    };
+
+    FILE *f = open_file("correctness/graphs/disconnected_input.bin");
+
+    fwrite(&n, sizeof(int), 1, f);
+    fwrite(&num_edges, sizeof(int), 1, f);
+    fwrite(edges, sizeof(Edge), num_edges, f);
+
+    fclose(f);
+
+    int reachable = 3;
+    int max_dist = 2;
+    int dist[] = {0, 1, 2, -1, -1, -1};
+
+    f = open_file("correctness/graphs/disconnected_expected.bin");
 
     fwrite(&n, sizeof(int), 1, f);
     fwrite(&reachable, sizeof(int), 1, f);
@@ -205,7 +261,7 @@ typedef struct {
  * 3 -> 4
  *
  **/
-static void generate_dijkstra_connected_correctness() {
+static void generate_weighted_graph_connected_correctness() {
     printf("Generating correctness/graphs_weighted/connected_input.bin...\n");
     make_dir("correctness/graphs_weighted");
 
@@ -273,7 +329,7 @@ static void generate_dijkstra_connected_correctness() {
  * 3 -> ∞
  *
  **/
-static void generate_dijkstra_disconnected_correctness() {
+static void generate_weighted_graph_disconnected_correctness() {
     printf("Generating correctness/graphs_weighted/disconnected_input.bin...\n");
     make_dir("correctness/graphs_weighted");
 
@@ -449,7 +505,8 @@ int main(void) {
     generate_duplicates_sorting_correctness();
 
     printf("Graph datasets\n");
-    generate_graph_correctness();
+    generate_graph_connected_correctness();
+    generate_graph_disconnected_correctness();
     generate_weighted_graph_connected_correctness();
     generate_weighted_graph_disconnected_correctness();
 
