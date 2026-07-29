@@ -8,23 +8,24 @@
  * Config
  * --------------------------- */
 
-static const unsigned int SEED = 10;
+// base seed for dataset generation
+static const unsigned int SEED = 10; 
 
 /* Sorting sizes (number of ints) */
-static const int SORT_SIZES[]   = { 1000, 100000, 1000000, 10000000 };
+static const int SORT_SIZES[] = { 1000, 100000, 1000000, 10000000 };
 static const char *SORT_NAMES[] = { "small", "medium", "large", "very_large" };
-static const int SORT_COUNT     = 4;
+static const int SORT_COUNT = 4;
 
 /* Graph sizes (nodes, edges per node) */
-static const int GRAPH_NODES[]     = { 500, 5000, 50000, 500000 };
-static const int GRAPH_EDGES_PER[] = { 10,  10,   10,    10     };
-static const char *GRAPH_NAMES[]   = { "small", "medium", "large", "very_large" };
-static const int GRAPH_COUNT       = 4;
+static const int GRAPH_NODES[] = { 500, 5000, 50000, 500000 };
+static const int GRAPH_EDGES_PER[] = { 10, 10, 10, 10};
+static const char *GRAPH_NAMES[] = { "small", "medium", "large", "very_large" };
+static const int GRAPH_COUNT = 4;
 
 /* Matrix sizes (n x n matrix) */
-static const int MATRIX_SIZES[]   = { 64, 256, 512, 1024 };
+static const int MATRIX_SIZES[] = { 64, 256, 512, 1024 };
 static const char *MATRIX_NAMES[] = { "small", "medium", "large", "very_large" };
-static const int MATRIX_COUNT     = 4;
+static const int MATRIX_COUNT = 4;
 
 /* ---------------------------
  * Utils
@@ -47,16 +48,24 @@ static FILE *open_file(const char *path) {
  * Sorting datasets
  * --------------------------- */
 
+
+/**
+ * sorting/{small,medium,large,very_large}.bin:
+ *   int n - number of elements
+ *   int arr[n] - array of n random integers
+ * 
+ * Use of rand() means the data is platform dependent, but the same seed will produce the same data on the same platform.
+ */
 static void generate_sorting(unsigned int seed) {
-    make_dir("sorting");
+    make_dir("benchmark/sorting");
 
     for (int s = 0; s < SORT_COUNT; s++) {
         int n = SORT_SIZES[s];
 
         char path[256];
-        snprintf(path, sizeof(path), "sorting/%s.bin", SORT_NAMES[s]);
+        snprintf(path, sizeof(path), "benchmark/sorting/%s.bin", SORT_NAMES[s]);
 
-        printf("Generating sorting/%s.bin (%d elements)...\n", SORT_NAMES[s], n);
+        printf("Generating benchmark/sorting/%s.bin (%d elements)...\n", SORT_NAMES[s], n);
 
         int *arr = (int *)malloc(n * sizeof(int));
         if (arr == NULL) {
@@ -86,18 +95,26 @@ typedef struct {
     int to;
 } Edge;
 
+/**
+ * graphs/{small,medium,large,very_large}.bin:
+ *   int n - number of nodes
+ *   int num_edges - number of edges
+ *   Edge edges[num_edges] - array of edges, where each edge is a pair of integers (from, to)
+ * 
+ * To avoid early termination, there is a path from node 0 to node n-1, and the rest of the edges are random
+ */
 static void generate_graphs(unsigned int seed) {
-    make_dir("graphs");
+    make_dir("benchmark/graphs");
 
     for (int s = 0; s < GRAPH_COUNT; s++) {
-        int n         = GRAPH_NODES[s];
-        int per_node  = GRAPH_EDGES_PER[s];
+        int n= GRAPH_NODES[s];
+        int per_node = GRAPH_EDGES_PER[s];
         int num_edges = n * per_node;
 
         char path[256];
-        snprintf(path, sizeof(path), "graphs/%s.bin", GRAPH_NAMES[s]);
+        snprintf(path, sizeof(path), "benchmark/graphs/%s.bin", GRAPH_NAMES[s]);
 
-        printf("Generating graphs/%s.bin (%d nodes, %d edges)...\n", GRAPH_NAMES[s], n, num_edges);
+        printf("Generating benchmark/graphs/%s.bin (%d nodes, %d edges)...\n", GRAPH_NAMES[s], n, num_edges);
 
         Edge *edges = (Edge *)malloc(num_edges * sizeof(Edge));
         if (edges == NULL) {
@@ -107,17 +124,18 @@ static void generate_graphs(unsigned int seed) {
 
         srand(seed + 100 + s);
 
+        // garantee a connected graph by creating a path from 0 to n-1
         int index = 0;
         for (int i = 0; i < n - 1 && index < num_edges; i++) {
             edges[index].from = i;
-            edges[index].to   = i + 1;
+            edges[index].to = i + 1;
             index++;
         }
 
-        /* fill randomly */
+        // fill randomly
         while (index < num_edges) {
             edges[index].from = rand() % n;
-            edges[index].to   = rand() % n;
+            edges[index].to = rand() % n;
             index++;
         }
 
@@ -140,8 +158,17 @@ typedef struct {
     double weight;
 } WeightedEdge;
 
+/**
+ * graphs_weighted/{small,medium,large,very_large}.bin:
+ *   int n - number of nodes
+ *   int num_edges - number of edges
+ *   WeightedEdge edges[num_edges] - array of weighted edges, where each edge consists of two integers (to, from) and a double weight.
+ * 
+ * To avoid early termination, there is a path from node 0 to node n-1, and the rest of the edges are random.
+ * The garanteed path has weight 1.0, and the random edges have weights in the range [1.0, 100.0].
+ */
 static void generate_weighted_graphs(unsigned int seed) {
-    make_dir("graphs_weighted");
+    make_dir("benchmark/graphs_weighted");
 
     for (int s = 0; s < GRAPH_COUNT; s++) {
         int n = GRAPH_NODES[s];
@@ -149,16 +176,16 @@ static void generate_weighted_graphs(unsigned int seed) {
         int num_edges = n * per_node;
 
         char path[256];
-        snprintf(path, sizeof(path), "graphs_weighted/%s.bin", GRAPH_NAMES[s]);
+        snprintf(path, sizeof(path), "benchmark/graphs_weighted/%s.bin", GRAPH_NAMES[s]);
 
-        printf("Generating graphs_weighted/%s.bin (%d nodes, %d edges)...\n",
-               GRAPH_NAMES[s], n, num_edges);
+        printf("Generating benchmark/graphs_weighted/%s.bin (%d nodes, %d edges)...\n", GRAPH_NAMES[s], n, num_edges);
 
         WeightedEdge *edges = (WeightedEdge *)malloc(num_edges * sizeof(WeightedEdge));
         if (edges == NULL) { fprintf(stderr, "malloc failed\n"); exit(1); }
 
         srand(seed + 300 + s);
 
+        // create a path from 0 to n-1 with weight 1.0
         int index = 0;
         for (int i = 0; i < n - 1 && index < num_edges; i++) {
             edges[index].from   = i;
@@ -167,9 +194,10 @@ static void generate_weighted_graphs(unsigned int seed) {
             index++;
         }
 
+        // fill randomly with weights in [1.0, 100.0]
         while (index < num_edges) {
-            edges[index].from   = rand() % n;
-            edges[index].to     = rand() % n;
+            edges[index].from = rand() % n;
+            edges[index].to = rand() % n;
             edges[index].weight = 1.0 + ((double)rand() / RAND_MAX) * 99.0;
             index++;
         }
@@ -187,17 +215,24 @@ static void generate_weighted_graphs(unsigned int seed) {
  * Matrix datasets
  * --------------------------- */
 
+/**
+ * matrix/{small,medium,large,very_large}.bin:
+ *   int n - size of the matrix (n x n)
+ *   data[n*n*2] - two n x n matrices of doubles
+ * 
+ * data[0..n*n-1] is the first matrix, and data[n*n..2*n*n-1] is the second matrix.
+ */
 static void generate_matrix(unsigned int seed) {
-    make_dir("matrix");
+    make_dir("benchmark/matrix");
 
     for (int s = 0; s < MATRIX_COUNT; s++) {
         int n = MATRIX_SIZES[s];
         int elements = n * n;
 
         char path[256];
-        snprintf(path, sizeof(path), "matrix/%s.bin", MATRIX_NAMES[s]);
+        snprintf(path, sizeof(path), "benchmark/matrix/%s.bin", MATRIX_NAMES[s]);
 
-        printf("Generating matrix/%s.bin (%dx%d matrices)...\n", MATRIX_NAMES[s], n, n);
+        printf("Generating benchmark/matrix/%s.bin (%dx%d matrices)...\n", MATRIX_NAMES[s], n, n);
 
         double *mat = (double *)malloc(2 * elements * sizeof(double));
         if (mat == NULL) { fprintf(stderr, "malloc failed\n"); exit(1); }

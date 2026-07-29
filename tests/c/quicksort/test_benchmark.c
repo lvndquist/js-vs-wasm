@@ -1,8 +1,8 @@
-/* Quick sort testing */
+/* Quick sort testing with benchmark datasets */
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "../utils/utils.h"
+#include "../../../src/c/utils/utils.h"
 
 void quick_sort(int *arr, int n);
 
@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
     if (argc >= 2) pathType = argv[1];
 
     char path[256];
-    snprintf(path, sizeof(path), "../../../datasets/sorting/%s.bin", pathType);
+    snprintf(path, sizeof(path), "../../../datasets/benchmark/sorting/%s.bin", pathType);
 
     int n;
     int *original = load_sort_data(path, &n);
@@ -49,6 +49,7 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
+/*
 int main_random_data(int argc, char *argv[]) {
     int n = 20;
     int range = 1000000;
@@ -89,3 +90,4 @@ int main_random_data(int argc, char *argv[]) {
     free(arr);
     return 0;
 }
+*/

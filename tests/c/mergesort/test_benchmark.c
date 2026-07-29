@@ -47,6 +47,7 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
+/*
 int main_random_data(int argc, char *argv[]) {
     // random data
     int n = 20;
@@ -91,3 +92,4 @@ int main_random_data(int argc, char *argv[]) {
     free(arr);
     return 0;
 }
+*/

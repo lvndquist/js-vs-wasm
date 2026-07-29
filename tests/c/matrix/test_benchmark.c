@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
     if (argc >= 2) size = argv[1];
 
     char path[256];
-    snprintf(path, sizeof(path), "../../../datasets/matrix/%s.bin", size);
+    snprintf(path, sizeof(path), "../../../datasets/benchmark/matrix/%s.bin", size);
 
     MatrixData *md = load_matrix_data(path);
     printf("Matrix Multiplication\n");

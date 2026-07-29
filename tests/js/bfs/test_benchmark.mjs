@@ -1,9 +1,8 @@
 import { readFileSync } from 'fs';
-import { bfs } from './bfs.mjs';
+import { bfs } from '../../../src/js/graphs/bfs.mjs';
 
 const size = process.argv[2] || 'small';
-const path = `../../../datasets/graphs/${size}.bin`;
-
+const path = `../../../datasets/benchmark/graphs/${size}.bin`;
 const buffer = readFileSync(path);
 const numOfNodes = buffer.readInt32LE(0);
 const numOfEdges = buffer.readInt32LE(4);

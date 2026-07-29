@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "../utils/utils.h"
-#include "dijkstra.h"
+#include "../../../src/c/graphs/dijkstra.h"
+#include "../../../src/c/utils/utils.h"
 
 WeightedGraph *build_graph(const WeightedGraphData *gd) {
     WeightedGraph *g = weighted_graph_create(gd->num_nodes);
@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
     if (argc >= 2) size = argv[1];
 
     char path[256];
-    snprintf(path, sizeof(path), "../../../datasets/graphs_weighted/%s.bin", size);
+    snprintf(path, sizeof(path), "../../../datasets/benchmark/graphs_weighted/%s.bin", size);
 
     WeightedGraphData *gd = load_weighted_graph_data(path);
     printf("Dijkstra\n");

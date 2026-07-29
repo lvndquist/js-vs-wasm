@@ -2,3 +2,8 @@ datasets/sorting/
 datasets/graphs/
 datasets/graphs_weighted/
 datasets/matrix/
+
+datasets/benchmark/sorting/
+datasets/benchmark/graphs/
+datasets/benchmark/graphs_weighted/
+datasets/benchmark/matrix/

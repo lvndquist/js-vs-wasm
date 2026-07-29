@@ -1,10 +1,9 @@
 import { readFileSync } from 'fs';
-import { matrix_multiplication } from './matrix_multiplication.mjs';
-import { matrixChecksum } from '../utils/utils.mjs';
+import { matrix_multiplication } from '../../../src/js/numeric/matrix_multiplication.mjs';
+import { matrixChecksum } from '../../../src/js/utils/utils.mjs';
 
 const size = process.argv[2] || 'small';
-const path = `../../../datasets/matrix/${size}.bin`;
-
+const path = `../../../datasets/benchmark/numeric/${size}.bin`;
 const buffer = readFileSync(path);
 const view = new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength);
 const n = view.getInt32(0, true);

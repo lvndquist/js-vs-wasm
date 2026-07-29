@@ -1,12 +1,11 @@
 import { readFileSync } from 'fs';
-import { quick_sort } from './quicksort.mjs';
-import { printArray } from '../utils/utils.mjs';
-import { isSorted } from '../utils/utils.mjs';
-import { arrayChecksum } from '../utils/utils.mjs';
+import { quick_sort } from '../../../src/js/sorting/quicksort.mjs';
+import { printArray } from '../../../src/js/utils/utils.mjs';
+import { isSorted } from '../../../src/js/utils/utils.mjs';
+import { arrayChecksum } from '../../../src/js/utils/utils.mjs';
 
 const size = process.argv[2] || 'small';
-const path = `../../../datasets/sorting/${size}.bin`;
-
+const path = `../../../datasets/benchmark/sorting/${size}.bin`;
 const buffer = readFileSync(path);
 const n = buffer.readInt32LE(0);
 const arr = new Int32Array(buffer.buffer, buffer.byteOffset + 4, n);

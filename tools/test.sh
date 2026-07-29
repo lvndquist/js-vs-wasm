@@ -1,8 +1,10 @@
 #!/bin/bash
 set -e
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SIZE=${1:-small}
 
-echo "Running all tests with dataset: $SIZE"
+INCLUDES="-I$ROOT/src/c/sorting -I$ROOT/src/c/graphs -I$ROOT/src/c/numeric -I$ROOT/src/c/utils"
 
 PASS=0
 FAIL=0
@@ -18,16 +20,22 @@ results_match() {
     [ "$a" == "$b" ]
 }
 
-run() {
+run_with_bench_data() {
     local name=$1
-    local c_dir=$2
-    local c_sources=$3
-    local js_dir=$4
-    local js_file=$5
+    local tdir=$2
+    shift 2
+
+    local srcs=()
+    for s in "$@"; do srcs+=("$ROOT/$s"); done
+    srcs+=("$ROOT/src/c/utils/utils.c" "$ROOT/tests/c/$tdir/test_correctness.c")
+
+    local c_dir="$ROOT/tests/c/$tdir"
+    local js_dir="$ROOT/tests/js/$tdir"
+    local bin="/tmp/test_$name"
 
     echo -n "$name: "
 
-    if ! (cd "$c_dir" && gcc -O2 -o "test_$name" $c_sources ../utils/utils.c 2>/tmp/${name}_build_err); then
+    if ! gcc -O2 $INCLUDES -o "$bin" "${srcs[@]}" -lm 2>/tmp/${name}_build_err; then
         echo "BUILD FAIL"
         cat "/tmp/${name}_build_err"
         FAIL=$((FAIL + 1))
@@ -35,8 +43,8 @@ run() {
     fi
 
     local c_out js_out
-    c_out=$(cd "$c_dir" && ./"test_$name" "$SIZE" 2>&1) || true
-    js_out=$(cd "$js_dir" && node "$js_file" "$SIZE" 2>&1) || true
+    c_out=$(cd "$c_dir" && "$bin" "$SIZE" 2>&1) || true
+    js_out=$(cd "$js_dir" && node test_correctness.mjs "$SIZE" 2>&1) || true
 
     local c_result js_result
     c_result=$(extract_result "$c_out")
@@ -67,11 +75,12 @@ run() {
     fi
 }
 
-run "mergesort" "src/c/sorting" "mergesort.c test_mergesort.c" "src/js/sorting" "test_mergesort.mjs"
-run "quicksort" "src/c/sorting" "quicksort.c test_quicksort.c" "src/js/sorting" "test_quicksort.mjs"
-run "bfs" "src/c/graphs" "bfs.c test_bfs.c" "src/js/graphs" "test_bfs.mjs"
-run "dijkstra" "src/c/graphs" "dijkstra.c ../utils/min_heap.c test_dijkstra.c" "src/js/graphs" "test_dijkstra.mjs"
-run "matrix_multiplication" "src/c/numeric" "matrix_multiplication.c test_matrix_multiplication.c" "src/js/numeric" "test_matrix_multiplication.mjs"
+echo "Running all tests with dataset: $SIZE"
+run_with_bench_data mergesort mergesort src/c/sorting/mergesort.c
+run_with_bench_data quicksort quicksort src/c/sorting/quicksort.c
+run_with_bench_data bfs bfs src/c/graphs/bfs.c
+run_with_bench_data dijkstra dijkstra src/c/graphs/dijkstra.c src/c/utils/min_heap.c
+run_with_bench_data matrix_multiplication matrix src/c/numeric/matrix_multiplication.c
 
 echo ""
 echo "$PASS passed, $FAIL failed"

@@ -1,9 +1,8 @@
 import { readFileSync } from 'fs';
-import { dijkstra } from './dijkstra.mjs';
+import { dijkstra } from '../../../src/js/graphs/dijkstra.mjs';
 
 const size = process.argv[2] || 'small';
-const path = `../../../datasets/graphs_weighted/${size}.bin`;
-
+const path = `../../../datasets/benchmark/graphs_weighted/${size}.bin`;
 const buffer = readFileSync(path);
 const view = new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength);
 const numOfNodes = view.getInt32(0, true);

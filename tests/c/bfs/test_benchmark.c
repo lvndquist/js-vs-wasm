@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "bfs.h"
-#include "../utils/utils.h"
+#include "../../../src/c/graphs/bfs.h"
+#include "../../../src/c/utils/utils.h"
 
 static Graph *build_graph(const GraphData *gd) {
     Graph *g = graph_create(gd->num_nodes);
@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
     if (argc >= 2) pathType = argv[1];
 
     char path[256];
-    snprintf(path, sizeof(path), "../../../datasets/graphs/%s.bin", pathType);
+    snprintf(path, sizeof(path), "../../../datasets/benchmark/graphs/%s.bin", pathType);
 
     GraphData *gd = load_graph_data(path);
     printf("BFS\n");

@@ -21,6 +21,8 @@ const DATA_ROOT = '../datasets';
 const SIZES = ['small', 'medium', 'large', 'very_large'];
 
 let cancel = false;
+let showVerification = true; // flag for more or less verbose output during verification
+
 
 function detectBrowser() {
     const ua = navigator.userAgent;
@@ -195,14 +197,16 @@ function downloadCSV(csv) {
 async function checkMergeSort(wasm, dataset) {
     const { n, arr } = await loadSortData(dataset);
 
+    console.assert(arr.length === n, "Mergesort: Array length does not match n");
+    
     const jsCopy = arr.slice();
     merge_sort(jsCopy, n);
-
+    
     const pointer = wasm.mergeSortModule._malloc(arr.length * 4);
     wasm.mergeSortModule.HEAP32.set(arr, pointer >> 2);
     wasm.mergeSortModule._merge_sort(pointer, n);
     const wasmResult = wasm.mergeSortModule.HEAP32.subarray(pointer >> 2, (pointer >> 2) + n);
-
+    
     let match = true;
     for (let i = 0; i < n; i++) {
         if (jsCopy[i] !== wasmResult[i]) {
@@ -210,15 +214,21 @@ async function checkMergeSort(wasm, dataset) {
             break;
         }
     }
-    // console.log(arr);
-    // console.log(jsCopy);
-    // console.log(wasmResult);
+    
+    if (showVerification) {
+        console.log('[Mergesort] input:', arr);
+        console.log('[Mergesort] JS result:', jsCopy);
+        console.log('[Mergesort] WASM result:', wasmResult);
+        console.log('[Mergesort] match:', match);
+    }
+    
     wasm.mergeSortModule._free(pointer);
     return match;
 }
 
 async function checkQuickSort(wasm, dataset) {
     const { n, arr } = await loadSortData(dataset);
+    console.assert(arr.length === n, "Quicksort: Array length does not match n");
 
     const jsCopy = arr.slice();
     quick_sort(jsCopy, n);
@@ -233,9 +243,14 @@ async function checkQuickSort(wasm, dataset) {
     for (let i = 0; i < n; i++) {
         if (jsCopy[i] !== wasmResult[i]) { match = false; break; }
     }
-    // console.log(arr);
-    // console.log(jsCopy);
-    // console.log(wasmResult);
+
+    if (showVerification) {
+        console.log('[Quicksort] input:', arr);
+        console.log('[Quicksort] JS result:', jsCopy);
+        console.log('[Quicksort] WASM result:', wasmResult);
+        console.log('[Quicksort] match:', match);
+    }
+
     wasm.quickSortModule._free(pointer);
     return match;
 }
@@ -243,6 +258,9 @@ async function checkQuickSort(wasm, dataset) {
 async function checkBFS(wasm, dataset) {
     const graphData = await loadGraphData(dataset);
     const { numOfNodes, numOfEdges, from, to } = graphData;
+
+    console.assert(from.length === numOfEdges, "BFS: from array length does not match numOfEdges");
+    console.assert(to.length === numOfEdges, "BFS: to array length does not match numOfEdges");
 
     const visited = new Int32Array(numOfNodes);
     const dist = new Int32Array(numOfNodes);
@@ -273,6 +291,13 @@ async function checkBFS(wasm, dataset) {
         }
     }
 
+    if (showVerification) {
+        console.log('[BFS] numOfNodes:', numOfNodes, 'numOfEdges:', numOfEdges);
+        console.log('[BFS] JS dist:', dist);
+        console.log('[BFS] WASM dist:', wasmDist);
+        console.log('[BFS] match:', match);
+    }
+
     wasm.bfsModule._graph_free(g);
     wasm.bfsModule._free(fromPointer);
     wasm.bfsModule._free(toPointer);
@@ -285,6 +310,10 @@ async function checkBFS(wasm, dataset) {
 async function checkDijkstra(wasm, dataset) {
     const graphData = await loadWeightedGraphData(dataset);
     const { numOfNodes, numOfEdges, from, to, weight } = graphData;
+
+    console.assert(from.length === numOfEdges, "Dijkstra: from array length does not match numOfEdges");
+    console.assert(to.length === numOfEdges, "Dijkstra: to array length does not match numOfEdges");
+    console.assert(weight.length === numOfEdges, "Dijkstra: weight array length does not match numOfEdges");
 
     const dist = new Float64Array(numOfNodes);
     const visited = new Int32Array(numOfNodes);
@@ -321,6 +350,13 @@ async function checkDijkstra(wasm, dataset) {
         }
     }
 
+    if (showVerification) {
+        console.log('[Dijkstra] numOfNodes:', numOfNodes, 'numOfEdges:', numOfEdges);
+        console.log('[Dijkstra] JS dist:', dist);
+        console.log('[Dijkstra] WASM dist:', wasmDistView);
+        console.log('[Dijkstra] match:', match);
+    }
+
     wasm.dijkstraModule._weighted_graph_free(weightedGraph);
     wasm.dijkstraModule._free(fromPointer);
     wasm.dijkstraModule._free(toPointer);
@@ -333,6 +369,10 @@ async function checkDijkstra(wasm, dataset) {
 
 async function checkMatrixMultiplication(wasm, dataset) {
     const { n, A, B, C } = await loadMatrixData(dataset);
+
+    console.assert(A.length === n * n, "Matrix A length does not match n * n");
+    console.assert(B.length === n * n, "Matrix B length does not match n * n");
+    console.assert(C.length === n * n, "Matrix C length does not match n * n");
 
     matrix_multiplication(A, B, C, n);
 
@@ -347,6 +387,13 @@ async function checkMatrixMultiplication(wasm, dataset) {
     let match = true;
     for (let i = 0; i < n * n; i++) {
         if (Math.abs(C[i] - wasmC[i]) > 1e-9) { match = false; break; }
+    }
+
+    if (showVerification) {
+        console.log('[Matrix Multiplication] n:', n);
+        console.log('[Matrix Multiplication] JS C:', C);
+        console.log('[Matrix Multiplication] WASM C:', wasmC);
+        console.log('[Matrix Multiplication] match:', match);
     }
 
     wasm.matrixModule._free(aPointer);
