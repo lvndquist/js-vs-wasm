@@ -60,7 +60,7 @@ static void run_case(const char *label, const char *input_path, const char *expe
         printf("mismatch (%s): size %d/%d\n", label, md->n, expected->n);
     }
 
-    printf("RESULT {\"case\":\"%s\",\"n\":%d,\"matrix\":",label,md->n);
+    printf("RESULT {\"n\":%d,\"matrix\":",md->n);
     printf("[");
     for (int i = 0; i < count; i++) {
         printf("%.4f", result[i]);
@@ -86,7 +86,6 @@ int main() {
     snprintf(basic_input_path,sizeof(basic_input_path), "../../../datasets/correctness/matrix/basic_input.bin");
     snprintf(basic_expected_path, sizeof(basic_expected_path), "../../../datasets/correctness/matrix/basic_expected.bin");
     snprintf(identity_input_path, sizeof(identity_input_path), "../../../datasets/correctness/matrix/identity_matrix_input.bin");
-
     snprintf(identity_expected_path, sizeof(identity_expected_path), "../../../datasets/correctness/matrix/identity_matrix_expected.bin");
 
     run_case("basic", basic_input_path, basic_expected_path);

@@ -407,12 +407,9 @@ static void generate_matrix_correctness() {
 
     int n = 2;
 
-    double A[] = {
+    double mat[] = {
         1.0, 2.0,
-        3.0, 4.0
-    };
-
-    double B[] = {
+        3.0, 4.0,
         5.0, 6.0,
         7.0, 8.0
     };
@@ -422,8 +419,7 @@ static void generate_matrix_correctness() {
     );
 
     fwrite(&n, sizeof(int), 1, f);
-    fwrite(A, sizeof(double), n * n, f);
-    fwrite(B, sizeof(double), n * n, f);
+    fwrite(mat, sizeof(double), 2 * n * n, f);
 
     fclose(f);
 
@@ -464,12 +460,9 @@ static void generate_identity_matrix_correctness() {
 
     int n = 2;
 
-    double A[] = {
+    double mat[] = {
         1.0, 0.0,
-        0.0, 1.0
-    };
-
-    double B[] = {
+        0.0, 1.0,
         5.0, 6.0,
         7.0, 8.0
     };
@@ -479,8 +472,7 @@ static void generate_identity_matrix_correctness() {
     );
 
     fwrite(&n, sizeof(int), 1, f);
-    fwrite(A, sizeof(double), n * n, f);
-    fwrite(B, sizeof(double), n * n, f);
+    fwrite(mat, sizeof(double), 2 * n * n, f);
 
     fclose(f);
 

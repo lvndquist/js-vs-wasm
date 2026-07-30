@@ -3,7 +3,7 @@ import { matrix_multiplication } from '../../../src/js/numeric/matrix_multiplica
 import { matrixChecksum } from '../../../src/js/utils/utils.mjs';
 
 const size = process.argv[2] || 'small';
-const path = `../../../datasets/benchmark/numeric/${size}.bin`;
+const path = `../../../datasets/benchmark/matrix/${size}.bin`;
 const buffer = readFileSync(path);
 const view = new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength);
 const n = view.getInt32(0, true);
@@ -29,8 +29,8 @@ for (let k = 0; k < n; k++) {
 const diff = Math.abs(C[0] - expected);
 
 console.log('Matrix multiplication');
-console.log(`Dataset : ${path}`);
-console.log(`Size    : ${n}x${n}`);
+console.log(`Dataset: ${path}`);
+console.log(`Size: ${n}x${n}`);
 console.log(`C[0][0] check: ${C[0].toFixed(4)} (computed) vs ${expected.toFixed(4)} (expected)`);
 console.log(diff < 1e-6 ? 'OK' : 'FAIL');
 
