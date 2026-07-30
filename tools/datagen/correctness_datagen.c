@@ -81,7 +81,7 @@ static void generate_reverse_sorted_sorting_correctness() {
 
 // basic correctness dataset: array with duplicate integers
 static void generate_duplicates_sorting_correctness() {
-    printf("Generating correctness/sorting/duplicates_input.bin...\n");
+    printf("Generating correctness/sorting/duplicate_input.bin...\n");
     make_dir("correctness/sorting");
 
     int input[] = {5,2,5,1,3,2,5};
@@ -89,8 +89,8 @@ static void generate_duplicates_sorting_correctness() {
 
     int n = 7;
 
-    write_int_array("correctness/sorting/duplicates_input.bin", input, n);
-    write_int_array("correctness/sorting/duplicates_expected.bin", expected, n);
+    write_int_array("correctness/sorting/duplicate_input.bin", input, n);
+    write_int_array("correctness/sorting/duplicate_expected.bin", expected, n);
 }
 
 /* ---------------------------

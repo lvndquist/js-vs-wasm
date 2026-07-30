@@ -82,8 +82,8 @@ int main() {
     char reverse_input_path[256];
     char reverse_expected_path[256];
 
-    char duplicates_input_path[256];
-    char duplicates_expected_path[256];
+    char duplicate_input_path[256];
+    char duplicate_expected_path[256];
 
     snprintf(basic_input_path, sizeof(basic_input_path), "../../../datasets/correctness/sorting/basic_input.bin");
     snprintf(basic_expected_path, sizeof(basic_expected_path), "../../../datasets/correctness/sorting/basic_expected.bin");
@@ -91,13 +91,13 @@ int main() {
     snprintf(sorted_expected_path, sizeof(sorted_expected_path), "../../../datasets/correctness/sorting/sorted_expected.bin");
     snprintf(reverse_input_path, sizeof(reverse_input_path), "../../../datasets/correctness/sorting/reverse_input.bin");
     snprintf(reverse_expected_path, sizeof(reverse_expected_path), "../../../datasets/correctness/sorting/reverse_expected.bin");
-    snprintf(duplicates_input_path, sizeof(duplicates_input_path), "../../../datasets/correctness/sorting/duplicates_input.bin");
-    snprintf(duplicates_expected_path, sizeof(duplicates_expected_path), "../../../datasets/correctness/sorting/duplicates_expected.bin");
+    snprintf(duplicate_input_path, sizeof(duplicate_input_path), "../../../datasets/correctness/sorting/duplicate_input.bin");
+    snprintf(duplicate_expected_path, sizeof(duplicate_expected_path), "../../../datasets/correctness/sorting/duplicate_expected.bin");
 
     run_case("basic", basic_input_path, basic_expected_path);
     run_case("sorted", sorted_input_path, sorted_expected_path);
     run_case("reverse", reverse_input_path, reverse_expected_path);
-    run_case("duplicates", duplicates_input_path, duplicates_expected_path);
+    run_case("duplicate", duplicate_input_path, duplicate_expected_path);
 
     return 0;
 }
