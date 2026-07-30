@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <sys/stat.h>
 
 /* ---------------------------
  * Utils
@@ -129,7 +130,7 @@ typedef struct {
  * 4 -> 2
  * 5 -> 3
  **/
-static void generate_connected_graph_correctness() {
+static void generate_graph_connected_correctness() {
     printf("Generating correctness/graphs/connected_input.bin...\n");
     make_dir("correctness/graphs");
 
@@ -160,7 +161,6 @@ static void generate_connected_graph_correctness() {
 
     fwrite(&n, sizeof(int), 1, f);
     fwrite(&num_edges, sizeof(int), 1, f);
-    fwrite(&n, sizeof(int), 1, f);
     fwrite(&reachable, sizeof(int), 1, f);
     fwrite(&max_dist, sizeof(int), 1, f);
     fwrite(dist, sizeof(int), n, f);
@@ -189,7 +189,7 @@ static void generate_connected_graph_correctness() {
  * 4 -> -1
  * 5 -> -1
  **/
-static void generate_disconnected_graph_correctness() {
+static void generate_graph_disconnected_correctness() {
     printf("Generating correctness/graphs/disconnected_input.bin...\n");
     make_dir("correctness/graphs");
 
