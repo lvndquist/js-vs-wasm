@@ -38,8 +38,7 @@ function runCase(label, inputPath, expectedPath) {
         for (let i = 0; i < expected.n; i++) {
             if (sortData.arr[i] !== expected.arr[i]) {
                 console.log(
-                    `mismatch (${label}) at index ${i}: ` +
-                    `got ${sortData.arr[i]}, expected ${expected.arr[i]}`
+                    `mismatch (${label}) at index ${i}: ` +`got ${sortData.arr[i]}, expected ${expected.arr[i]}`
                 );
 
                 expectedResult = false;
@@ -48,7 +47,7 @@ function runCase(label, inputPath, expectedPath) {
         }
     } else {
         console.log(
-            `mismatch (${label}): length ${sortData.n}/${expected.n}`
+            `mismatch (${label}): ${sortData.n}/${expected.n}`
         );
     }
 

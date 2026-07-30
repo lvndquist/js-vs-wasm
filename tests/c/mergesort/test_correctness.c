@@ -53,10 +53,10 @@ static void run_case(const char *label, const char *input_path, const char *expe
             }
         }
     } else {
-        printf("mismatch (%s): length %d/%d\n", label, n, expected->n);
+        printf("mismatch (%s): %d/%d\n", label, n, expected->n);
     }
 
-    printf("RESULT {\"case\":\"%s\",\"n\":%d,\"array\":", label, n);
+    printf("RESULT {\"n\":%d,\"array\":", label, n);
     printf("[");
     for (int i = 0; i < n; i++) {
         printf("%d", input_array[i]);

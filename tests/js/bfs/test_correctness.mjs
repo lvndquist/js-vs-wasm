@@ -122,7 +122,6 @@ function runCase(label, inputPath, expectedPath) {
 
 }
 
-
 runCase("connected", "../../../datasets/correctness/graphs/connected_input.bin", "../../../datasets/correctness/graphs/connected_expected.bin");
 runCase("disconnected", "../../../datasets/correctness/graphs/disconnected_input.bin", "../../../datasets/correctness/graphs/disconnected_expected.bin");
 
