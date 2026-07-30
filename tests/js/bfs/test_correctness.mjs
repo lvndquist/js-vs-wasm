@@ -7,9 +7,9 @@ function loadGraphData(path) {
     const numOfEdges = buffer.readInt32LE(4);
 
     const edgePairs = new Int32Array(buffer.buffer, buffer.byteOffset + 8, numOfEdges * 2);
-
     const from = new Int32Array(numOfEdges);
     const to = new Int32Array(numOfEdges);
+
     for (let i = 0; i < numOfEdges; i++) {
         from[i] = edgePairs[i * 2];
         to[i] = edgePairs[i * 2 + 1];
@@ -94,7 +94,7 @@ function runCase(label, inputPath, expectedPath) {
     }
     
     let expectedResult = false;
-    expectedResult = (numOfNodes == expected.n) && (numOfEdges == expected.numEdges) && (reachable == expected.reachable) && (maxDist == expected.maxDist);
+    expectedResult = (numOfNodes === expected.n) && (numOfEdges === expected.numEdges) && (reachable === expected.reachable) && (maxDist === expected.maxDist);
 
     if (expectedResult) {
         for (let i = 0; i < expected.n; i++) {

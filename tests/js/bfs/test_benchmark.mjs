@@ -7,14 +7,10 @@ const buffer = readFileSync(path);
 const numOfNodes = buffer.readInt32LE(0);
 const numOfEdges = buffer.readInt32LE(4);
 
-const edgePairs = new Int32Array(
-  buffer.buffer,
-  buffer.byteOffset + 8,
-  numOfEdges * 2
-);
-
+const edgePairs = new Int32Array(buffer.buffer, buffer.byteOffset + 8, numOfEdges * 2);
 const from = new Int32Array(numOfEdges);
 const to = new Int32Array(numOfEdges);
+
 for (let i = 0; i < numOfEdges; i++) {
   from[i] = edgePairs[i * 2];
   to[i] = edgePairs[i * 2 + 1];

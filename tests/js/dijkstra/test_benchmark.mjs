@@ -14,9 +14,12 @@ const weight = new Float64Array(numOfEdges);
 
 let offset = 8;
 for (let i = 0; i < numOfEdges; i++) {
-    from[i] = view.getInt32(offset, true); offset += 4;
-    to[i] = view.getInt32(offset, true); offset += 4;
-    weight[i] = view.getFloat64(offset, true); offset += 8;
+    from[i] = view.getInt32(offset, true);
+    offset += 4;
+    to[i] = view.getInt32(offset, true);
+    offset += 4;
+    weight[i] = view.getFloat64(offset, true);
+    offset += 8;
 }
 
 // CSR structure
@@ -48,29 +51,26 @@ const visited = new Int32Array(graphData.numOfNodes);
 
 dijkstra(graphData, 0, dist, visited);
 
-const reachable = Array.from(dist).filter(d => d < 1e18).length;
-const maxDist = Array.from(dist).filter(d => d < 1e18).reduce((a, b) => Math.max(a, b), 0);
+let reachable = 0;
+let maxDist = 0;
+let checksum = 0;
 
-// console.log('------------');
-// console.log('Dijkstra');
-// console.log('------------');
-// console.log(`Dataset: ${path}`);
-// console.log(`Loaded: ${numOfNodes} nodes, ${numOfEdges} edges`);
-// console.log(`Dijkstra from node 0: `);
-// console.log(`Reachable nodes : ${reachable} / ${numOfNodes}`);
-// console.log(`Max distance    : ${maxDist.toFixed(2)}`);
-// console.log(`dist[0]         : ${dist[0].toFixed(2)}`);
-// console.log(`dist[1]         : ${dist[1].toFixed(2)}`);
-// console.log(`dist[2]         : ${dist[2].toFixed(2)}`);
-// console.log(`dist[3]         : ${dist[3].toFixed(2)}`);
+for (let i = 0; i < numOfNodes; i++) {
+    if (visited[i]) {
+        reachable++;
+
+        if (dist[i] > maxDist) {
+            maxDist = dist[i];
+        }
+
+        checksum += dist[i];
+    }
+}
 
 console.log('Dijkstra');
 console.log('RESULT', JSON.stringify({
     nodes: numOfNodes,
     reachable,
     max_dist: maxDist.toFixed(2),
-    dist0: dist[0].toFixed(2),
-    dist1: dist[1].toFixed(2),
-    dist2: dist[2].toFixed(2),
-    dist3: dist[3].toFixed(2)
+    checksum: checksum.toFixed(2)
 }));
