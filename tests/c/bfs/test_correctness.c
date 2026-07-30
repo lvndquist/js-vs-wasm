@@ -5,6 +5,7 @@
 
 typedef struct {
     int n;
+    int num_edges;
     int reachable;
     int max_dist;
     int *dist;
@@ -25,6 +26,7 @@ static ExpectedBFS *load_expected(const char *path) {
 
     ExpectedBFS *expected = (ExpectedBFS *)malloc(sizeof(ExpectedBFS));
     fread(&expected->n, sizeof(int), 1, f);
+    fread(&expected->num_edges, sizeof(int), 1, f);
     fread(&expected->reachable, sizeof(int), 1, f);
     fread(&expected->max_dist, sizeof(int), 1, f);
     
@@ -54,7 +56,8 @@ static void run_case(const char *label, const char *input_path, const char *expe
     int *dist = (int *)malloc(g->num_nodes * sizeof(int));
     bfs(g, 0, visited, dist);
 
-    int reachable = 0, max_dist = 0;
+    int reachable = 0;
+    int max_dist = 0;
     for (int i = 0; i < g->num_nodes; i++) {
         if (visited[i]) {
             reachable++;
@@ -64,7 +67,7 @@ static void run_case(const char *label, const char *input_path, const char *expe
         }
     }
 
-    int expected_result = (g->num_nodes == expected->n) && (reachable == expected->reachable) && (max_dist == expected->max_dist);
+    int expected_result = (g->num_nodes == expected->n) && (gd->num_edges == expected->num_edges) && (reachable == expected->reachable) && (max_dist == expected->max_dist);
 
     if (expected_result) {
         for (int i = 0; i < expected->n; i++) {
@@ -75,10 +78,10 @@ static void run_case(const char *label, const char *input_path, const char *expe
             }
         }
     } else {
-        printf("mismatch: nodes %d/%d, reachable %d/%d, max_dist %d/%d\n", g->num_nodes, expected->n, reachable, expected->reachable, max_dist, expected->max_dist);
+        printf("mismatch: nodes %d/%d, num_edges %d/%d, reachable %d/%d, max_dist %d/%d\n", g->num_nodes, expected->n, gd->num_edges, expected->num_edges, reachable, expected->reachable, max_dist, expected->max_dist);
     }
 
-    printf("RESULT {\"nodes\":%d,\"reachable\":%d,\"max_dist\":%d,\"dist\":", g->num_nodes, reachable, max_dist);
+    printf("RESULT {\"nodes\":%d,\"num_edges\":%d,\"reachable\":%d,\"max_dist\":%d,\"dist\":", g->num_nodes, gd->num_edges, reachable, max_dist);
     printf("[");
     for (int i = 0; i < g->num_nodes; i++) {
         printf("%d", dist[i]);

@@ -1,7 +1,6 @@
 /* Quick sort testing with benchmark datasets */
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 #include "../../../src/c/utils/utils.h"
 
 void quick_sort(int *arr, int n);

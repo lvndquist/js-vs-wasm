@@ -54,29 +54,26 @@ const dist = new Int32Array(numOfNodes);
 
 bfs(graphData, 0, visited, dist);
 
-const reachable = visited.reduce((acc, v) => acc + v, 0);
-const maxDist = dist.reduce((acc, d) => d > acc ? d : acc, 0);
+let reachable = 0;
+let maxDist = 0;
+let checksum = 0;
 
-// console.log('------------');
-// console.log('BFS');
-// console.log('------------');
-// console.log(`Dataset: ${path}`);
-// console.log(`Loaded: ${numOfNodes} nodes, ${numOfEdges} edges`);
-// console.log(`BFS from node 0:`);
-// console.log(`Reachable nodes : ${reachable} / ${numOfNodes}`);
-// console.log(`Max distance    : ${maxDist}`);
-// console.log(`dist[0]         : ${dist[0]}`);
-// console.log(`dist[1]         : ${dist[1]}`);
-// console.log(`dist[2]         : ${dist[2]}`);
-// console.log(`dist[3]         : ${dist[3]}`);
+for (let i = 0; i < numOfNodes; i++) {
+    if (visited[i]) {
+        reachable++;
+
+        if (dist[i] > maxDist) {
+            maxDist = dist[i];
+        }
+
+        checksum += dist[i];
+    }
+}
 
 console.log('BFS');
 console.log('RESULT', JSON.stringify({
     nodes: numOfNodes,
     reachable,
     max_dist: maxDist,
-    dist0: dist[0],
-    dist1: dist[1],
-    dist2: dist[2],
-    dist3: dist[3]
+    checksum: checksum
 }));

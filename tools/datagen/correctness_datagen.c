@@ -159,6 +159,8 @@ static void generate_connected_graph_correctness() {
     f = open_file("correctness/graphs/connected_expected.bin");
 
     fwrite(&n, sizeof(int), 1, f);
+    fwrite(&num_edges, sizeof(int), 1, f);
+    fwrite(&n, sizeof(int), 1, f);
     fwrite(&reachable, sizeof(int), 1, f);
     fwrite(&max_dist, sizeof(int), 1, f);
     fwrite(dist, sizeof(int), n, f);
@@ -215,6 +217,7 @@ static void generate_disconnected_graph_correctness() {
     f = open_file("correctness/graphs/disconnected_expected.bin");
 
     fwrite(&n, sizeof(int), 1, f);
+    fwrite(&num_edges, sizeof(int), 1, f);
     fwrite(&reachable, sizeof(int), 1, f);
     fwrite(&max_dist, sizeof(int), 1, f);
     fwrite(dist, sizeof(int), n, f);
@@ -302,6 +305,7 @@ static void generate_weighted_graph_connected_correctness() {
     );
 
     fwrite(&n, sizeof(int), 1, f);
+    fwrite(&num_edges, sizeof(int), 1, f);
     fwrite(&reachable, sizeof(int), 1, f);
     fwrite(&max_dist, sizeof(double), 1, f);
     fwrite(dist, sizeof(double), n, f);
@@ -368,6 +372,7 @@ static void generate_weighted_graph_disconnected_correctness() {
     );
 
     fwrite(&n, sizeof(int), 1, f);
+    fwrite(&num_edges, sizeof(int), 1, f);
     fwrite(&reachable, sizeof(int), 1, f);
     fwrite(&max_dist, sizeof(double), 1, f);
     fwrite(dist, sizeof(double), n, f);

@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "../../../src/c/utils/utils.h"
-#include <time.h>
 
 void merge_sort(int *arr, int n);
 

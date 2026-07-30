@@ -5,6 +5,7 @@
 
 typedef struct {
     int n;
+    int num_edges;
     int reachable;
     double max_dist;
     double *dist;
@@ -37,6 +38,7 @@ static ExpectedDijkstra *load_expected(const char *path) {
 
     ExpectedDijkstra *expected = (ExpectedDijkstra *)malloc(sizeof(ExpectedDijkstra));
     fread(&expected->n, sizeof(int), 1, f);
+    fread(&expected->num_edges, sizeof(int), 1, f);
     fread(&expected->reachable, sizeof(int), 1, f);
     fread(&expected->max_dist, sizeof(double), 1, f);
     expected->dist = (double *)malloc(expected->n * sizeof(double));
@@ -76,7 +78,7 @@ static void run_case(const char *label, const char *input_path, const char *expe
         }
     }
 
-    int expected_result = (g->num_nodes == expected->n) && (reachable == expected->reachable) && (max_dist == expected->max_dist);
+    int expected_result = (g->num_nodes == expected->n) && (gd->num_edges == expected->num_edges) && (reachable == expected->reachable) && (max_dist == expected->max_dist);
 
     if (expected_result) {
         for (int i = 0; i < expected->n; i++) {
@@ -87,10 +89,10 @@ static void run_case(const char *label, const char *input_path, const char *expe
             }
         }
     } else {
-        printf("mismatch (%s): nodes %d/%d, reachable %d/%d, max_dist %f/%f\n", label, g->num_nodes, expected->n, reachable, expected->reachable, max_dist, expected->max_dist);
+        printf("mismatch (%s): nodes %d/%d, num_edges %d/%d, reachable %d/%d, max_dist %f/%f\n", label, g->num_nodes, expected->n, gd->num_edges, expected->num_edges, reachable, expected->reachable, max_dist, expected->max_dist);
     }
 
-    printf("RESULT {\"case\":\"%s\",\"nodes\":%d,\"reachable\":%d,\"max_dist\":%.4f,\"dist\":",label, g->num_nodes, reachable, max_dist);
+    printf("RESULT {\"nodes\":%d,\"num_edges\":%d,\"reachable\":%d,\"max_dist\":%.4f,\"dist\":",g->num_nodes, gd->num_edges, reachable, max_dist);
     printf("[");
     for (int i = 0; i < g->num_nodes; i++) {
         if (dist[i] >= INFINITY) {
