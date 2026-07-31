@@ -4,20 +4,21 @@ set -e
 mkdir -p .build
 
 echo "Compiling dataset generators..."
-gcc -O2 bench_datagen.c -o ".build/bench_datagen"
-gcc -O2 correctness_datagen.c -o ".build/correctness_datagen"
+gcc -O2 datagen/benchmark_datagen.c -o ".build/benchmark_datagen"
+gcc -O2 datagen/correctness_datagen.c -o ".build/correctness_datagen"
 
-echo
+echo ""
 echo "Generating benchmark datasets..."
 cd ../datasets
 
-../tools/.build/bench_datagen
+../tools/.build/benchmark_datagen
 
-echo
+echo ""
 echo "Generating correctness datasets..."
+echo ""
 ../tools/.build/correctness_datagen
 
-echo
+echo ""
 echo "All datasets generated successfully."
 
 rm -rf ../tools/.build

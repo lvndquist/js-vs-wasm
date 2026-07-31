@@ -1,90 +1,233 @@
 #!/bin/bash
+
 set -e
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SIZE=${1:-small}
+MODE=${1:-all} # defualt to all
+SIZE=${2:-small} # defualt to small
 
-INCLUDES="-I$ROOT/src/c/sorting -I$ROOT/src/c/graphs -I$ROOT/src/c/numeric -I$ROOT/src/c/utils"
+# validate benchmark dataset size
+if [ "$MODE" = "benchmark" ] || [ "$MODE" = "all" ]; then
+    case "$SIZE" in
+        small|medium|large|very_large)
+            ;;
+        *)
+            echo "Invalid dataset size: $SIZE"
+            echo "Use: small, medium, large, very_large"
+            exit 1
+            ;;
+    esac
+fi
 
 PASS=0
 FAIL=0
 
-extract_result() {
+# tests producing one result
+extract_first_result() {
     echo "$1" | grep '^RESULT ' | head -n 1 | sed 's/^RESULT //'
 }
 
-results_match() {
-    local a b
-    a=$(echo "$1" | jq -S -c .)
-    b=$(echo "$2" | jq -S -c .)
-    [ "$a" == "$b" ]
+# tests producing multiple results
+extract_all_results() {
+    echo "$1" | grep '^RESULT ' | sed 's/^RESULT //' | jq -S -c .
 }
 
-run_with_bench_data() {
+results_match() {
+    local c_result
+    local js_result
+
+    c_result=$(echo "$1" | jq -S -c .)
+    js_result=$(echo "$2" | jq -S -c .)
+
+    [ "$c_result" = "$js_result" ]
+}
+
+run_test_benchmark() {
     local name=$1
-    local tdir=$2
-    shift 2
+    local c_dir=$2
+    local js_dir=$3
+    local exec=$4
 
-    local srcs=()
-    for s in "$@"; do srcs+=("$ROOT/$s"); done
-    srcs+=("$ROOT/src/c/utils/utils.c" "$ROOT/tests/c/$tdir/test_correctness.c")
+    echo -n "$name benchmark: "
 
-    local c_dir="$ROOT/tests/c/$tdir"
-    local js_dir="$ROOT/tests/js/$tdir"
-    local bin="/tmp/test_$name"
+    local c_output
+    local js_output
 
-    echo -n "$name: "
+    c_output=$(cd "$c_dir" && "$exec" "$SIZE" 2>&1) || true
+    js_output=$(cd "$js_dir" && node test_benchmark.mjs "$SIZE" 2>&1) || true
 
-    if ! gcc -O2 $INCLUDES -o "$bin" "${srcs[@]}" -lm 2>/tmp/${name}_build_err; then
-        echo "BUILD FAIL"
-        cat "/tmp/${name}_build_err"
-        FAIL=$((FAIL + 1))
-        return
-    fi
+    local c_result
+    local js_result
+    c_result=$(extract_first_result "$c_output" || true)
+    js_result=$(extract_first_result "$js_output" || true)
 
-    local c_out js_out
-    c_out=$(cd "$c_dir" && "$bin" "$SIZE" 2>&1) || true
-    js_out=$(cd "$js_dir" && node test_correctness.mjs "$SIZE" 2>&1) || true
-
-    local c_result js_result
-    c_result=$(extract_result "$c_out")
-    js_result=$(extract_result "$js_out")
-
+    # check if no result was produced by C
     if [ -z "$c_result" ]; then
-        echo "FAIL (no RESULT from C)"
-        echo "$c_out" | tail -5
+        echo "FAIL (C produced no benchmark RESULT)"
+        echo "$c_output" | tail -10
         FAIL=$((FAIL + 1))
         return
     fi
 
+    # check if no result was produced by JS
     if [ -z "$js_result" ]; then
-        echo "FAIL (no RESULT from JS)"
-        echo "$js_out" | tail -5
+        echo "FAIL (JS produced no benchmark RESULT)"
+        echo "$js_output" | tail -10
         FAIL=$((FAIL + 1))
         return
     fi
 
+    # results match?
     if results_match "$c_result" "$js_result"; then
-        echo "PASS ($c_result)"
+        echo "PASS"
         PASS=$((PASS + 1))
     else
         echo "FAIL (output mismatch)"
-        echo "  C:  $c_result"
-        echo "  JS: $js_result"
+        echo "C: $c_result"
+        echo "JS: $js_result"
         FAIL=$((FAIL + 1))
     fi
 }
 
-echo "Running all tests with dataset: $SIZE"
-run_with_bench_data mergesort mergesort src/c/sorting/mergesort.c
-run_with_bench_data quicksort quicksort src/c/sorting/quicksort.c
-run_with_bench_data bfs bfs src/c/graphs/bfs.c
-run_with_bench_data dijkstra dijkstra src/c/graphs/dijkstra.c src/c/utils/min_heap.c
-run_with_bench_data matrix_multiplication matrix src/c/numeric/matrix_multiplication.c
+run_test_correctness() {
+    local name=$1
+    local c_dir=$2
+    local js_dir=$3
+    local exec=$4
 
-echo ""
+    echo -n "$name correctness:"
+
+    local c_output
+    local js_output
+    c_output=$(cd "$c_dir" && "$exec" 2>&1) || true
+    js_output=$(cd "$js_dir" && node test_correctness.mjs 2>&1) || true
+
+    local c_results
+    local js_results
+    c_results=$(extract_all_results "$c_output" || true)
+    js_results=$(extract_all_results "$js_output" || true)
+
+    if [ -z "$c_results" ]; then
+        echo "FAIL (C produced no correctness RESULT)"
+        echo "$c_output" | tail -10
+        FAIL=$((FAIL + 1))
+        return
+    fi
+
+    if [ -z "$js_results" ]; then
+        echo "FAIL (JS produced no correctness RESULT)"
+        echo "$js_output" | tail -10
+        FAIL=$((FAIL + 1))
+        return
+    fi
+
+    if [ "$c_results" != "$js_results" ]; then
+        echo "FAIL (C and JavaScript outputs differ)"
+
+        echo "  C results:"
+        echo "$c_results"
+
+        echo "  JS results:"
+        echo "$js_results"
+
+        FAIL=$((FAIL + 1))
+        return
+    fi
+
+    if echo "$c_results" | jq -e 'select(.expected_result != true)' >/dev/null ; then
+        echo "FAIL (result did not match expected data)"
+        echo "$c_results"
+        FAIL=$((FAIL + 1))
+        return
+    fi
+
+    local number_of_cases
+    number_of_cases=$(echo "$c_results" | wc -l | tr -d ' ')
+
+    echo "PASS ($number_of_cases cases)"
+    PASS=$((PASS + 1))
+}
+
+compile_correctness_tests() {
+    echo "Compiling correctness tests..."
+
+    gcc -O2 -I../src/c/sorting ../src/c/sorting/mergesort.c ../src/c/utils/utils.c ../tests/c/mergesort/test_correctness.c -o /tmp/mergesort_correctness
+    gcc -O2 -I../src/c/sorting ../src/c/sorting/quicksort.c ../src/c/utils/utils.c ../tests/c/quicksort/test_correctness.c -o /tmp/quicksort_correctness
+    gcc -O2 -I../src/c/graphs ../src/c/graphs/bfs.c ../src/c/utils/utils.c ../tests/c/bfs/test_correctness.c -o /tmp/bfs_correctness
+    gcc -O2 -I../src/c/graphs -I../src/c/utils ../src/c/graphs/dijkstra.c ../src/c/utils/min_heap.c ../src/c/utils/utils.c ../tests/c/dijkstra/test_correctness.c -o /tmp/dijkstra_correctness
+    gcc -O2 -I../src/c/numeric ../src/c/numeric/matrix_multiplication.c ../src/c/utils/utils.c ../tests/c/matrix/test_correctness.c -o /tmp/matrix_correctness
+}
+
+compile_benchmark_tests() {
+    echo "Compiling benchmark tests..."
+
+    gcc -O2 -I../src/c/sorting ../src/c/sorting/mergesort.c ../src/c/utils/utils.c ../tests/c/mergesort/test_benchmark.c -o /tmp/mergesort_benchmark
+    gcc -O2 -I../src/c/sorting ../src/c/sorting/quicksort.c ../src/c/utils/utils.c ../tests/c/quicksort/test_benchmark.c -o /tmp/quicksort_benchmark
+    gcc -O2 -I../src/c/graphs ../src/c/graphs/bfs.c ../src/c/utils/utils.c ../tests/c/bfs/test_benchmark.c -o /tmp/bfs_benchmark
+    gcc -O2 -I../src/c/graphs -I../src/c/utils ../src/c/graphs/dijkstra.c ../src/c/utils/min_heap.c ../src/c/utils/utils.c ../tests/c/dijkstra/test_benchmark.c -o /tmp/dijkstra_benchmark
+    gcc -O2 -I../src/c/numeric ../src/c/numeric/matrix_multiplication.c ../src/c/utils/utils.c ../tests/c/matrix/test_benchmark.c -o /tmp/matrix_benchmark
+}
+
+run_correctness_tests() {
+    compile_correctness_tests
+
+    echo ""
+    echo "Running correctness tests..."
+
+    run_test_correctness "Merge Sort" "../tests/c/mergesort" "../tests/js/mergesort" "/tmp/mergesort_correctness"
+    run_test_correctness "Quick Sort" "../tests/c/quicksort" "../tests/js/quicksort" "/tmp/quicksort_correctness"
+    run_test_correctness "BFS" "../tests/c/bfs" "../tests/js/bfs" "/tmp/bfs_correctness"
+    run_test_correctness "Dijkstra" "../tests/c/dijkstra" "../tests/js/dijkstra" "/tmp/dijkstra_correctness"
+    run_test_correctness "Matrix Multiplication" "../tests/c/matrix" "../tests/js/matrix" "/tmp/matrix_correctness"
+}
+
+run_benchmark_tests() {
+    compile_benchmark_tests
+
+    echo ""
+    echo "Running benchmark validation with dataset: $SIZE"
+
+    run_test_benchmark "Merge Sort" "../tests/c/mergesort" "../tests/js/mergesort" "/tmp/mergesort_benchmark"
+    run_test_benchmark "Quick Sort" "../tests/c/quicksort" "../tests/js/quicksort" "/tmp/quicksort_benchmark"
+    run_test_benchmark "BFS" "../tests/c/bfs" "../tests/js/bfs" "/tmp/bfs_benchmark"
+    run_test_benchmark "Dijkstra" "../tests/c/dijkstra" "../tests/js/dijkstra" "/tmp/dijkstra_benchmark"
+    run_test_benchmark "Matrix Multiplication" "../tests/c/matrix" "../tests/js/matrix" "/tmp/matrix_benchmark"
+}
+
+clear() {
+    rm -f /tmp/mergesort_correctness /tmp/quicksort_correctness /tmp/bfs_correctness /tmp/dijkstra_correctness /tmp/matrix_correctness \
+        /tmp/mergesort_benchmark /tmp/quicksort_benchmark /tmp/bfs_benchmark /tmp/dijkstra_benchmark /tmp/matrix_benchmark
+}
+trap clear EXIT
+
+case "$MODE" in
+    correctness)
+        run_correctness_tests
+        ;;
+
+    benchmark)
+        run_benchmark_tests
+        ;;
+
+    all)
+        run_correctness_tests
+        echo
+        run_benchmark_tests
+        ;;
+
+    *)
+        echo "Use: ./run_tests.sh all/correctness/benchmark size"
+        echo ""
+        echo "./run_tests.sh"
+        echo "./run_tests.sh correctness"
+        echo "./run_tests.sh benchmark medium"
+        echo "./run_tests.sh all small/medium/large/very_large"
+        exit 1
+        ;;
+esac
+
+echo
 echo "$PASS passed, $FAIL failed"
 
-if [ $FAIL -ne 0 ]; then
+if [ "$FAIL" -ne 0 ]; then
     exit 1
 fi

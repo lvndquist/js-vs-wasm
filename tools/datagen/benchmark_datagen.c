@@ -266,6 +266,6 @@ int main(void) {
     printf("\nMatrix datasets:\n");
     generate_matrix(SEED);
 
-    printf("\nDone. All datasets written/\n");
+    printf("\nDone. All benchmark datasets written/\n");
     return 0;
 }

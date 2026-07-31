@@ -49,6 +49,7 @@ static void generate_basic_sorting_correctness() {
     int n = 10;
 
     write_int_array("correctness/sorting/basic_input.bin", input, n);
+    printf("Generating correctness/sorting/basic_expected.bin...\n");
     write_int_array("correctness/sorting/basic_expected.bin", expected, n);
 }
 
@@ -63,6 +64,7 @@ static void generate_sorted_sorting_correctness() {
     int n = 10;
 
     write_int_array("correctness/sorting/sorted_input.bin", input, n);
+    printf("Generating correctness/sorting/sorted_expected.bin...\n");
     write_int_array("correctness/sorting/sorted_expected.bin", expected, n);
 }
 
@@ -77,6 +79,7 @@ static void generate_reverse_sorted_sorting_correctness() {
     int n = 10;
 
     write_int_array("correctness/sorting/reverse_input.bin", input, n);
+    printf("Generating correctness/sorting/reverse_expected.bin...\n");
     write_int_array("correctness/sorting/reverse_expected.bin", expected, n);
 }
 
@@ -91,6 +94,7 @@ static void generate_duplicates_sorting_correctness() {
     int n = 7;
 
     write_int_array("correctness/sorting/duplicate_input.bin", input, n);
+    printf("Generating correctness/sorting/duplicate_expected.bin...\n");
     write_int_array("correctness/sorting/duplicate_expected.bin", expected, n);
 }
 
@@ -153,6 +157,8 @@ static void generate_graph_connected_correctness() {
 
     fclose(f);
 
+    printf("Generating correctness/graphs/connected_expected.bin...\n");
+
     int reachable = 6;
     int max_dist = 3;
     int dist[] = {0, 1, 1, 2, 2, 3};
@@ -209,6 +215,8 @@ static void generate_graph_disconnected_correctness() {
     fwrite(edges, sizeof(Edge), num_edges, f);
 
     fclose(f);
+
+    printf("Generating correctness/graphs/disconnected_expected.bin...\n");
 
     int reachable = 3;
     int max_dist = 2;
@@ -290,6 +298,8 @@ static void generate_weighted_graph_connected_correctness() {
 
     fclose(f);
 
+    printf("Generating correctness/graphs_weighted/connected_expected.bin...\n");
+
     double dist[] = {
         0.0, // shortest distance to self
         1.0, // shortest distance to node 1
@@ -357,6 +367,8 @@ static void generate_weighted_graph_disconnected_correctness() {
 
     fclose(f);
 
+    printf("Generating correctness/graphs_weighted/disconnected_expected.bin...\n");
+
     double dist[] = {
         0.0,
         1.0,
@@ -403,6 +415,7 @@ static void generate_weighted_graph_disconnected_correctness() {
  *           43 50
  */
 static void generate_matrix_correctness() {
+    printf("Generating correctness/matrix/basic_input.bin...\n");
     make_dir("correctness/matrix");
 
     int n = 2;
@@ -422,6 +435,8 @@ static void generate_matrix_correctness() {
     fwrite(mat, sizeof(double), 2 * n * n, f);
 
     fclose(f);
+
+    printf("Generating correctness/matrix/basic_expected.bin...\n");
 
     double expected[] = {
         19.0, 22.0,
@@ -456,6 +471,7 @@ static void generate_matrix_correctness() {
  *           7 8
  **/
 static void generate_identity_matrix_correctness() {
+    printf("Generating correctness/matrix/identity_matrix_input.bin...\n");
     make_dir("correctness/matrix");
 
     int n = 2;
@@ -476,6 +492,8 @@ static void generate_identity_matrix_correctness() {
 
     fclose(f);
 
+    printf("Generating correctness/matrix/identity_matrix_expected.bin...\n");
+
     double expected[] = {
         5.0, 6.0,
         7.0, 8.0
@@ -493,21 +511,19 @@ static void generate_identity_matrix_correctness() {
 
 int main(void) {
 
-    printf("Generating correctness datasets...\n");
-
-    printf("Sorting datasets\n");
+    printf("Sorting datasets:\n");
     generate_basic_sorting_correctness();
     generate_sorted_sorting_correctness();
     generate_reverse_sorted_sorting_correctness();
     generate_duplicates_sorting_correctness();
 
-    printf("Graph datasets\n");
+    printf("Graph datasets:\n");
     generate_graph_connected_correctness();
     generate_graph_disconnected_correctness();
     generate_weighted_graph_connected_correctness();
     generate_weighted_graph_disconnected_correctness();
 
-    printf("Matrix datasets\n");
+    printf("Matrix datasets:\n");
     generate_matrix_correctness();
     generate_identity_matrix_correctness();
 
