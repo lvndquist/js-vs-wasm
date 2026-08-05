@@ -23,7 +23,7 @@ FAIL=0
 
 # tests producing one result
 extract_first_result() {
-    echo "$1" | grep '^RESULT ' | head -n 1 | sed 's/^RESULT //'
+    echo "$1" | grep '^RESULT ' | sed 's/^RESULT //'
 }
 
 # tests producing multiple results
@@ -103,6 +103,7 @@ run_test_correctness() {
 
     local c_results
     local js_results
+    
     c_results=$(extract_all_results "$c_output" || true)
     js_results=$(extract_all_results "$js_output" || true)
 
