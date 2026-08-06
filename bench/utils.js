@@ -25,3 +25,31 @@ export function detectBrowser() {
     if (ua.includes('Chrome')) return 'chrome';
     return 'unknown';
 }
+
+function intArrayEqual(a, b) {
+    if (a.length !== b.length) {
+        return false;
+    }
+
+    for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function floatArrayEqual(a, b) {
+    if (a.length !== b.length) {
+        return false;
+    }
+
+    for (let i = 0; i < a.length; i++) {
+        if (Math.abs(a[i] - b[i]) > 1e-9) {
+            return false;
+        }
+    }
+
+    return true;
+}

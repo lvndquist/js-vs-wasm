@@ -99,6 +99,5 @@ export async function loadMatrixData(size, root) {
     const n = view.getInt32(0, true);
     const A = new Float64Array(buffer.slice(4), 0, n * n);
     const B = new Float64Array(buffer.slice(4 + n * n * 8), 0, n * n);
-    const C = new Float64Array(n * n);
-    return { n, A, B, C };
+    return { n, A, B};
 }
