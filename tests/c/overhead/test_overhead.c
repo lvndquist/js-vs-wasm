@@ -6,29 +6,10 @@ void matrix_multiplication_full(const double *A, const double *B, double *C, int
 void matrix_multiplication_row(const double *A, const double *B, double *C, int row, int n);
 void matrix_multiplication_cell(const double *A, const double *B, double *C, int i, int j, int n);
 
-/* Print a corner of the matrix.. top-left 3x3 */
-static void print_matrix(const double *M, int n) {
-    int edge = 3;
-    int show = n < edge ? n : edge;
-
-    for (int i = 0; i < show; i++) {
-        printf("  [");
-        for (int j = 0; j < show; j++) {
-            printf("%8.2f", M[i * n + j]);
-            if (j < show - 1) printf(", ");
-        }
-        if (n > edge) {
-            printf(",  ...");
-        }
-        printf("]\n");
-    }
-    if (n > edge) printf("  ...\n");
-}
-
-static int matrices_equal(const double *X, const double *Y, int n, double tol) {
+static int matrices_equal(const double *X, const double *Y, int n, double limit) {
     for (int i = 0; i < n * n; i++) {
         double diff = X[i] - Y[i];
-        if (diff > tol || diff < -tol) return 0;
+        if (diff > limit || diff < -limit) return 0;
     }
     return 1;
 }
@@ -38,7 +19,7 @@ int main(int argc, char *argv[]) {
     if (argc >= 2) size = argv[1];
 
     char path[256];
-    snprintf(path, sizeof(path), "../../../datasets/matrix/%s.bin", size);
+    snprintf(path, sizeof(path), "../../../datasets/benchmark/matrix/%s.bin", size);
 
     MatrixData *md = load_matrix_data(path);
     printf("Dataset: %s\n", path);
@@ -68,21 +49,6 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    printf("A (top-left corner):\n");
-    print_matrix(md->A, n);
-
-    printf("B (top-left corner):\n");
-    print_matrix(md->B, n);
-
-    printf("C_full (top-left corner):\n");
-    print_matrix(C_full, n);
-
-    printf("C_row (top-left corner):\n");
-    print_matrix(C_row, n);
-
-    printf("C_cell (top-left corner):\n");
-    print_matrix(C_cell, n);
-
     /* C[0][0] should equal dot product of row 0 of A and col 0 of B */
     double expected = 0.0;
     for (int k = 0; k < n; k++) {
@@ -101,9 +67,22 @@ int main(int argc, char *argv[]) {
     int all_ok = full_ok && row_vs_full && cell_vs_full;
     printf("\nOverall: %s\n", all_ok ? "OK" : "FAIL");
 
+    printf("RESULT {\"n\":%d,\"full_ok\":%s,""\"row_vs_full\":%s,\"cell_vs_full\":%s,""\"expected_result\":%s}\n",
+        n,
+        full_ok ? "true" : "false",
+        row_vs_full ? "true" : "false",
+        cell_vs_full ? "true" : "false",
+        all_ok ? "true" : "false"
+    );
+
     free(C_full);
     free(C_row);
     free(C_cell);
     free_matrix_data(md);
-    return all_ok ? 0 : 1;
+
+    if (!all_ok) {
+        return 1;
+    } else {
+        return 0;
+    }
 }

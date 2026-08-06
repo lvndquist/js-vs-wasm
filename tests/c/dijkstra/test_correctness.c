@@ -89,17 +89,18 @@ static void run_case(const char *label, const char *input_path, const char *expe
             }
         }
     } else {
-        printf("mismatch (%s): nodes %d/%d, num_edges %d/%d, reachable %d/%d, max_dist %f/%f\n", label, g->num_nodes, expected->n, gd->num_edges, expected->num_edges, reachable, expected->reachable, max_dist, expected->max_dist);
+        printf("mismatch (%s): nodes %d/%d, num_edges %d/%d, reachable %d/%d, max_dist %.17g/%.17g\n", label, g->num_nodes, expected->n, gd->num_edges, expected->num_edges, reachable, expected->reachable, max_dist, expected->max_dist);
     }
 
-    printf("RESULT {\"nodes\":%d,\"num_edges\":%d,\"reachable\":%d,\"max_dist\":%.4f,\"dist\":",g->num_nodes, gd->num_edges, reachable, max_dist);
+    printf("RESULT {\"case\":\"%s\",\"nodes\":%d,\"num_edges\":%d,\"reachable\":%d,\"max_dist\":%g,\"dist\":", label, g->num_nodes, gd->num_edges, reachable, max_dist);
     printf("[");
     for (int i = 0; i < g->num_nodes; i++) {
         if (dist[i] >= INFINITY) {
-            printf("%.1f", -1.0);
+            printf("1000000000000000000");
         } else {
-            printf("%.4f", dist[i]);
+            printf("%g", dist[i]);
         }
+
         if (i < g->num_nodes - 1) {
             printf(",");
         }

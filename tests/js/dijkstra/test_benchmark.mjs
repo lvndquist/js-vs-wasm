@@ -71,6 +71,6 @@ console.log('Dijkstra');
 console.log('RESULT', JSON.stringify({
     nodes: numOfNodes,
     reachable,
-    max_dist: maxDist.toFixed(2),
-    checksum: checksum.toFixed(2)
+    max_dist: maxDist.toFixed(4),
+    checksum: checksum.toFixed(4)
 }));

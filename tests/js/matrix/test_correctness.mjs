@@ -61,6 +61,7 @@ function runCase(label, inputPath, expectedPath) {
     console.log(
         "RESULT",
         JSON.stringify({
+            case: label,
             n,
             matrix: Array.from(matrixData.C),
             expected_result: expectedResult

@@ -111,6 +111,7 @@ function runCase(label, inputPath, expectedPath) {
     console.log(
         "RESULT",
         JSON.stringify({
+            case: label,
             nodes: numOfNodes,
             num_edges: numOfEdges,
             reachable,

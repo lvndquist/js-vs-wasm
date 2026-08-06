@@ -48,7 +48,7 @@ static void run_case(const char *label, const char *input_path, const char *expe
 
     if (expected_result) {
         for (int i = 0; i < count; i++) {
-            if (!result[i] != expected->matrix[i]) {
+            if (result[i] != expected->matrix[i]) {
                 int row = i / md->n;
                 int column = i % md->n;
                 printf("mismatch (%s) at [%d][%d]: got %f, expected %f\n", label, row, column, result[i], expected->matrix[i]);
@@ -60,10 +60,10 @@ static void run_case(const char *label, const char *input_path, const char *expe
         printf("mismatch (%s): size %d/%d\n", label, md->n, expected->n);
     }
 
-    printf("RESULT {\"n\":%d,\"matrix\":",md->n);
+    printf("RESULT {\"case\":\"%s\",\"n\":%d,\"matrix\":",  label, md->n);
     printf("[");
     for (int i = 0; i < count; i++) {
-        printf("%.4f", result[i]);
+        printf("%g", result[i]);
         if (i < count - 1) {
             printf(",");
         }

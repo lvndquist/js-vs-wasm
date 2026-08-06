@@ -37,7 +37,7 @@ static ExpectedBFS *load_expected(const char *path) {
     return expected;
 }
 
-static void run_case(const char *label, const char *input_path, const char *expected_path) {
+static int run_case(const char *label, const char *input_path, const char *expected_path) {
     GraphData *gd = load_graph_data(input_path);
     printf("BFS\n");
     printf("Loaded: %d nodes, %d edges\n", gd->num_nodes, gd->num_edges);
@@ -81,7 +81,7 @@ static void run_case(const char *label, const char *input_path, const char *expe
         printf("mismatch: nodes %d/%d, num_edges %d/%d, reachable %d/%d, max_dist %d/%d\n", g->num_nodes, expected->n, gd->num_edges, expected->num_edges, reachable, expected->reachable, max_dist, expected->max_dist);
     }
 
-    printf("RESULT {\"nodes\":%d,\"num_edges\":%d,\"reachable\":%d,\"max_dist\":%d,\"dist\":", g->num_nodes, gd->num_edges, reachable, max_dist);
+    printf("RESULT {\"case\":\"%s\",\"nodes\":%d,\"num_edges\":%d,\"reachable\":%d,\"max_dist\":%d,\"dist\":", label, g->num_nodes, gd->num_edges, reachable, max_dist);
     printf("[");
     for (int i = 0; i < g->num_nodes; i++) {
         printf("%d", dist[i]);

@@ -1,5 +1,5 @@
 import { readFileSync } from 'fs';
-import { bfs } from '../../../src/js/graphs/bfs.mjs';
+import { dijkstra } from '../../../src/js/graphs/dijkstra.mjs';
 
 const INFINITY = 1e18;
 
@@ -121,6 +121,7 @@ function runCase(label, inputPath, expectedPath) {
     console.log(
         "RESULT",
         JSON.stringify({
+            case: label,
             nodes: numOfNodes,
             num_edges: numOfEdges,
             reachable,

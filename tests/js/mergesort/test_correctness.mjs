@@ -1,5 +1,5 @@
 import { readFileSync } from 'fs';
-import { merge_sort } from '../../../src/js/sorting/merge_sort.mjs';
+import { merge_sort } from '../../../src/js/sorting/mergesort.mjs';
 
 function loadSortData(path) {
     const buffer = readFileSync(path);

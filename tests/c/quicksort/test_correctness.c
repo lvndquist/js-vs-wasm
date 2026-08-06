@@ -41,7 +41,7 @@ static void run_case(const char *label, const char *input_path, const char *expe
         return;
     }
 
-    merge_sort(input_array, n);
+    quick_sort(input_array, n);
     int expected_result = n == expected->n;
 
     if (expected_result) {
