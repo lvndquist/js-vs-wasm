@@ -6,7 +6,7 @@ MODE=${1:-all} # defualt to all
 SIZE=${2:-small} # defualt to small
 
 # validate benchmark dataset size
-if [ "$MODE" = "benchmark" ] || [ "$MODE" = "all" ]; then
+if [ "$MODE" = "benchmark" ] || [ "$MODE" = "all" ] || [ "$MODE" = "overhead" ]; then
     case "$SIZE" in
         small|medium|large|very_large)
             ;;
@@ -168,6 +168,12 @@ compile_benchmark_tests() {
     gcc -O2 -I../src/c/numeric ../src/c/numeric/matrix_multiplication.c ../src/c/utils/utils.c ../tests/c/matrix/test_benchmark.c -o /tmp/matrix_benchmark
 }
 
+compile_overhead_tests() {
+    echo "Compiling overhead tests..."
+
+    gcc -O2 -I../src/c/overhead -I../src/c/utils ../src/c/overhead/overhead.c ../src/c/utils/utils.c ../tests/c/overhead/test_overhead.c -o /tmp/overhead
+}
+
 run_correctness_tests() {
     compile_correctness_tests
 
@@ -194,9 +200,41 @@ run_benchmark_tests() {
     run_test_benchmark "Matrix Multiplication" "../tests/c/matrix" "../tests/js/matrix" "/tmp/matrix_benchmark"
 }
 
+run_test_overhead() {
+    compile_overhead_tests
+
+    echo ""
+    echo -n "Overhead test ($SIZE): "
+
+    local output
+    output=$(cd "../tests/c/overhead" && /tmp/overhead "$SIZE" 2>&1) || true
+
+    local result
+    result=$(extract_first_result "$output" || true)
+
+    if [ -z "$result" ]; then
+        echo "FAIL (C produced no overhead RESULT)"
+        echo "$output" | tail -10
+        FAIL=$((FAIL + 1))
+        return
+    fi
+
+    local expected_result
+    expected_result=$(echo "$result" | jq -r '.expected_result')
+
+    if [ "$expected_result" = "true" ]; then
+        echo "PASS"
+        PASS=$((PASS + 1))
+    else
+        echo "FAIL"
+        echo "$result"
+        FAIL=$((FAIL + 1))
+    fi
+}
+
 clear() {
     rm -f /tmp/mergesort_correctness /tmp/quicksort_correctness /tmp/bfs_correctness /tmp/dijkstra_correctness /tmp/matrix_correctness \
-        /tmp/mergesort_benchmark /tmp/quicksort_benchmark /tmp/bfs_benchmark /tmp/dijkstra_benchmark /tmp/matrix_benchmark
+        /tmp/mergesort_benchmark /tmp/quicksort_benchmark /tmp/bfs_benchmark /tmp/dijkstra_benchmark /tmp/matrix_benchmark /tmp/overhead
 }
 trap clear EXIT
 
@@ -209,18 +247,25 @@ case "$MODE" in
         run_benchmark_tests
         ;;
 
+    overhead)
+        run_test_overhead
+        ;;
+
     all)
         run_correctness_tests
-        echo
+        echo ""
         run_benchmark_tests
+        echo ""
+        run_test_overhead
         ;;
 
     *)
-        echo "Use: ./run_tests.sh all/correctness/benchmark size"
+        echo "Use: ./run_tests.sh all/correctness/benchmark/overhead size"
         echo ""
         echo "./run_tests.sh"
         echo "./run_tests.sh correctness"
         echo "./run_tests.sh benchmark medium"
+        echo "./run_tests.sh overhead large"
         echo "./run_tests.sh all small/medium/large/very_large"
         exit 1
         ;;
