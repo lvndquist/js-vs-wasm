@@ -38,8 +38,7 @@ int main(int argc, char *argv[]) {
     for (int k = 0; k < md->n; k++) {
         expected += md->A[k] * md->B[k * md->n];
     }
-    printf("C[0][0] check: %.4f (computed) vs %.4f (expected) \n%s\n", C[0], expected,
-    (C[0] - expected < 1e-6 && C[0] - expected > -1e-6) ? "OK" : "FAIL");
+    printf("C[0][0] check: %.4f (computed) vs %.4f (expected) \n%s\n", C[0], expected, (C[0] - expected < 1e-6 && C[0] - expected > -1e-6) ? "OK" : "FAIL");
 
     double checksum = matrix_checksum(C, md->n);
 

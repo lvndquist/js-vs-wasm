@@ -1,26 +1,5 @@
-import { readFileSync } from 'fs';
 import { quick_sort } from '../../../src/js/sorting/quicksort.mjs';
-
-function loadSortData(path) {
-    const buffer = readFileSync(path);
-    const view = new DataView(
-        buffer.buffer,
-        buffer.byteOffset,
-        buffer.byteLength
-    );
-
-    const n = view.getInt32(0, true);
-    const arr = new Int32Array(n);
-
-    for (let i = 0; i < n; i++) {
-        arr[i] = view.getInt32(4 + i *4, true);
-    }
-
-    return {
-        n,
-        arr
-    };
-}
+import { loadSortData } from '../test_loaders.mjs';
 
 function runCase(label, inputPath, expectedPath) {
     const sortData = loadSortData(inputPath);
@@ -51,15 +30,12 @@ function runCase(label, inputPath, expectedPath) {
         );
     }
 
-    console.log(
-        'RESULT',
-        JSON.stringify({
-            case: label,
-            n: sortData.n,
-            array: Array.from(sortData.arr),
-            expected_result: expectedResult
-        })
-    );
+    console.log("RESULT", JSON.stringify({
+        case: label,
+        n: sortData.n,
+        array: Array.from(sortData.arr),
+        expected_result: expectedResult
+    }));
 }
 
 runCase("basic", "../../../datasets/correctness/sorting/basic_input.bin", "../../../datasets/correctness/sorting/basic_expected.bin");

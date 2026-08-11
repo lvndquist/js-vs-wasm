@@ -32,63 +32,9 @@ int main(int argc, char *argv[]) {
     long long sum_out = array_checksum(arr, n);
     int same_sum = (sum_in == sum_out);
 
-    printf("RESULT {\"n\":%d,\"sorted\":%s,\"same_sum\":%s,\"first\":%d,\"last\":%d,\"checksum\":\"%lld\"}\n",
-        n,
-        sorted ? "true" : "false",
-        same_sum ? "true" : "false",
-        arr[0],
-        arr[n - 1],
-        sum_out
-    );
+    printf("RESULT {\"n\":%d,\"sorted\":%s,\"same_sum\":%s,\"first\":%d,\"last\":%d,\"checksum\":\"%lld\"}\n", n, sorted ? "true" : "false", same_sum ? "true" : "false", arr[0], arr[n - 1], sum_out);
 
     free(original);
     free(arr);
     return 0;
 }
-
-/*
-int main_random_data(int argc, char *argv[]) {
-    // random data
-    int n = 20;
-    int range = 1000000;
-
-    if (argc == 2) {
-        n = atoi(argv[1]);
-    } else if (argc == 3) {
-        n = atoi(argv[1]);
-        range = atoi(argv[2]);
-    }
-
-    int *arr = (int *)malloc(n * sizeof(int));
-    if (arr == NULL) {
-        fprintf(stderr, "Memory allocation failed.\n");
-        return 1;
-    }
-
-    srand((unsigned int)time(NULL));
-    for (int i = 0; i < n; i++) {
-        arr[i] = rand() % range;
-    }
-
-    printf("------------\n");
-    printf("Mergesort\n");
-    printf("------------\n");
-
-    printf("Input  (%d elements): ", n);
-    print_array(arr, n, 3);
-
-    merge_sort(arr, n);
-
-    printf("Output (%d elements): ", n);
-    print_array(arr, n, 3);
-
-    if (is_sorted(arr, n)) {
-        printf("OK\n");
-    } else {
-        printf("FAIL\n");
-    }
-
-    free(arr);
-    return 0;
-}
-*/

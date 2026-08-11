@@ -1,42 +1,9 @@
-import { readFileSync } from 'fs';
 import { matrix_multiplication } from '../../../src/js/numeric/matrix_multiplication.mjs';
-
-
-function loadMatrixData(path) {
-    const buffer = readFileSync(path);
-    const view = new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength);
-    const n = view.getInt32(0, true);
-    const elements = n * n;
-    const A = new Float64Array(elements);
-    const B = new Float64Array(elements);
-
-    for (let i = 0; i < elements; i++) {
-        A[i] = view.getFloat64(4 + i * 8, true);
-        B[i] = view.getFloat64(4 + elements * 8 + i * 8, true);
-    }
-
-    const C = new Float64Array(n * n);
-
-    return  { n, A, B, C};
-}
-
-function loadExpected(path) {
-    const buffer = readFileSync(path);
-    const view = new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength);
-    const n = view.getInt32(0, true);
-    const elements = n * n;
-    const C = new Float64Array(elements);
-
-    for (let i = 0; i < elements; i++) {
-        C[i] = view.getFloat64(4 + i * 8, true);
-    }
-
-    return { n, C };
-}
+import { loadMatrixData, loadExpectedMatrixData } from '../test_loaders.mjs';
 
 function runCase(label, inputPath, expectedPath) {
     const matrixData = loadMatrixData(inputPath);
-    const expected = loadExpected(expectedPath);
+    const expected = loadExpectedMatrixData(expectedPath);
 
     console.log(`Matrix Multiplication (${label})`);
     console.log(`Loaded: ${matrixData.n}x${matrixData.n} matrices`);
@@ -58,15 +25,12 @@ function runCase(label, inputPath, expectedPath) {
         console.log(`mismatch: size ${matrixData.n}/${expected.n}`);
     }
 
-    console.log(
-        "RESULT",
-        JSON.stringify({
-            case: label,
-            n,
-            matrix: Array.from(matrixData.C),
-            expected_result: expectedResult
-        })
-    );
+    console.log("RESULT", JSON.stringify({
+        case: label,
+        n,
+        matrix: Array.from(matrixData.C),
+        expected_result: expectedResult
+    }));
 }
 
 runCase("basic", "../../../datasets/correctness/matrix/basic_input.bin", "../../../datasets/correctness/matrix/basic_expected.bin");

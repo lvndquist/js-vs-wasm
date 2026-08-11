@@ -49,9 +49,8 @@ int main(int argc, char *argv[]) {
     // printf("dist[2]         : %.2f\n", dist[2]);
     // printf("dist[3]         : %.2f\n", dist[3]);
 
-    printf("RESULT {\"nodes\":%d,\"reachable\":%d,\"max_dist\":\"%.4f\",\"checksum\":\"%.4f\"}\n",
-    g->num_nodes, reachable, max_dist, checksum);
-    
+    printf("RESULT {\"nodes\":%d,\"reachable\":%d,\"max_dist\":\"%.4f\",\"checksum\":\"%.4f\"}\n", g->num_nodes, reachable, max_dist, checksum);
+
     free(dist);
     free(visited);
     weighted_graph_free(g);

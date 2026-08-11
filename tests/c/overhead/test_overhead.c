@@ -67,13 +67,7 @@ int main(int argc, char *argv[]) {
     int all_ok = full_ok && row_vs_full && cell_vs_full;
     printf("\nOverall: %s\n", all_ok ? "OK" : "FAIL");
 
-    printf("RESULT {\"n\":%d,\"full_ok\":%s,""\"row_vs_full\":%s,\"cell_vs_full\":%s,""\"expected_result\":%s}\n",
-        n,
-        full_ok ? "true" : "false",
-        row_vs_full ? "true" : "false",
-        cell_vs_full ? "true" : "false",
-        all_ok ? "true" : "false"
-    );
+    printf("RESULT {\"n\":%d,\"full_ok\":%s,""\"row_vs_full\":%s,\"cell_vs_full\":%s,""\"expected_result\":%s}\n", n, full_ok ? "true" : "false", row_vs_full ? "true" : "false", cell_vs_full ? "true" : "false", all_ok ? "true" : "false");
 
     free(C_full);
     free(C_row);

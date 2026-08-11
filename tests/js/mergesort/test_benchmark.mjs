@@ -1,24 +1,23 @@
-import { readFileSync } from 'fs';
 import { merge_sort } from '../../../src/js/sorting/mergesort.mjs';
 import { printArray } from '../../../src/js/utils/utils.mjs';
 import { isSorted } from '../../../src/js/utils/utils.mjs';
 import { arrayChecksum } from '../../../src/js/utils/utils.mjs';
+import { loadSortData } from '../test_loaders.mjs';
 
 const size = process.argv[2] || 'small';
 const path = `../../../datasets/benchmark/sorting/${size}.bin`;
-const buffer = readFileSync(path);
-const n = buffer.readInt32LE(0);
-const arr = new Int32Array(buffer.buffer, buffer.byteOffset + 4, n);
+const sortData = loadSortData(path);
 
-const original = arr.slice();
-const sorted = arr.slice();
+const n = sortData.n;
+const original = sortData.arr.slice();
+const sorted = sortData.arr.slice();
 
 merge_sort(sorted, sorted.length);
 
-console.log('Merge sort');
-console.log(`Dataset: ${path}`);
-console.log(`Input (${n} elements):`);
-console.log(printArray(original, 3));
+// console.log('Merge sort');
+// console.log(`Dataset: ${path}`);
+// console.log(`Input (${n} elements):`);
+// console.log(printArray(original, 3));
 
 console.log(`Output (${n} elements):`);
 console.log(printArray(sorted, 3));
@@ -30,7 +29,7 @@ const sumIn = arrayChecksum(original);
 const sumOut = arrayChecksum(sorted);
 const sameSum = sumIn === sumOut;
 
-console.log('RESULT', JSON.stringify({
+console.log("RESULT", JSON.stringify({
     n,
     sorted: arraySorted,
     first: sorted[0],

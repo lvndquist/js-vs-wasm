@@ -1,29 +1,21 @@
-import { readFileSync } from 'fs';
 import { quick_sort } from '../../../src/js/sorting/quicksort.mjs';
-import { printArray } from '../../../src/js/utils/utils.mjs';
-import { isSorted } from '../../../src/js/utils/utils.mjs';
+import { printArray } from '../test_utils.mjs';
+import { isSorted } from '../test_utils.mjs';
 import { arrayChecksum } from '../../../src/js/utils/utils.mjs';
+import { loadSortData } from '../test_loaders.mjs';
 
 const size = process.argv[2] || 'small';
 const path = `../../../datasets/benchmark/sorting/${size}.bin`;
-const buffer = readFileSync(path);
-const n = buffer.readInt32LE(0);
-const arr = new Int32Array(buffer.buffer, buffer.byteOffset + 4, n);
+const sortData = loadSortData(inputPath);
 
-const original = arr.slice();
-const sorted = arr.slice();
+const n = sortData.n;
+const original = sortData.arr.slice();
+const sorted = sortData.arr.slice();
 
 quick_sort(sorted, sorted.length);
 
-console.log('Quick sort');
-console.log(`Dataset: ${path}`);
-console.log(`Input (${n} elements):`);
-console.log(printArray(original, 3));
-
 console.log(`Output (${n} elements):`);
 console.log(printArray(sorted, 3));
-
-// console.log(isSorted(sorted) ? 'OK' : 'FAIL');
 
 const arraySorted = isSorted(sorted);
 const sumIn = arrayChecksum(original);

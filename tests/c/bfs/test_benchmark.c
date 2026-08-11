@@ -52,8 +52,7 @@ int main(int argc, char *argv[]) {
     // printf("dist[2]         : %d\n", dist[2]);
     // printf("dist[3]         : %d\n", dist[3]);
 
-    printf("RESULT {\"nodes\":%d,\"reachable\":%d,\"max_dist\":%d,\"checksum\":%d}\n",
-    g->num_nodes, reachable, max_dist, checksum);
+    printf("RESULT {\"nodes\":%d,\"reachable\":%d,\"max_dist\":%d,\"checksum\":%d}\n", g->num_nodes, reachable, max_dist, checksum);
 
     free(visited);
     free(dist);

@@ -47,7 +47,7 @@ run_test_benchmark() {
     local js_dir=$3
     local exec=$4
 
-    echo -n "$name benchmark: "
+    echo -n "$name benchmark ($SIZE): "
 
     local c_output
     local js_output
@@ -103,7 +103,6 @@ run_test_correctness() {
 
     local c_results
     local js_results
-    
     c_results=$(extract_all_results "$c_output" || true)
     js_results=$(extract_all_results "$js_output" || true)
 
@@ -145,6 +144,66 @@ run_test_correctness() {
     number_of_cases=$(echo "$c_results" | wc -l | tr -d ' ')
 
     echo "PASS ($number_of_cases cases)"
+    PASS=$((PASS + 1))
+}
+
+run_test_overhead() {
+    compile_overhead_tests
+
+    echo ""
+    echo -n "Overhead test ($SIZE): "
+
+    local output
+    output=$(cd "../tests/c/overhead" && /tmp/overhead "$SIZE" 2>&1) || true
+
+    local result
+    result=$(extract_first_result "$output" || true)
+
+    if [ -z "$result" ]; then
+        echo "FAIL (C produced no overhead RESULT)"
+        echo "$output" | tail -10
+        FAIL=$((FAIL + 1))
+        return
+    fi
+
+    local expected_result
+    expected_result=$(echo "$result" | jq -r '.expected_result')
+
+    if [ "$expected_result" = "true" ]; then
+        echo "PASS"
+        PASS=$((PASS + 1))
+    else
+        echo "FAIL"
+        echo "$result"
+        FAIL=$((FAIL + 1))
+    fi
+}
+
+run_test_integration() {
+
+    echo ""
+    echo -n "Integration test"
+
+    local output
+    output=$(cd "../tests/integration" && node test_integration.mjs 2>&1) || true
+
+    local result
+    results=$(extract_all_results "$output" || true)
+
+    if [ -z "$result" ]; then
+        echo "FAIL (Integration test produced no RESULT)"
+        echo "$output" | tail -10
+        FAIL=$((FAIL + 1))
+        return
+    fi
+
+    if echo "$result" | jq -e 'select(.expected_result != true)' >/dev/null ; then
+        echo "FAIL (integration result did not match expected data)"
+        echo "$result"
+        FAIL=$((FAIL + 1))
+        return
+    fi
+
     PASS=$((PASS + 1))
 }
 
@@ -200,38 +259,6 @@ run_benchmark_tests() {
     run_test_benchmark "Matrix Multiplication" "../tests/c/matrix" "../tests/js/matrix" "/tmp/matrix_benchmark"
 }
 
-run_test_overhead() {
-    compile_overhead_tests
-
-    echo ""
-    echo -n "Overhead test ($SIZE): "
-
-    local output
-    output=$(cd "../tests/c/overhead" && /tmp/overhead "$SIZE" 2>&1) || true
-
-    local result
-    result=$(extract_first_result "$output" || true)
-
-    if [ -z "$result" ]; then
-        echo "FAIL (C produced no overhead RESULT)"
-        echo "$output" | tail -10
-        FAIL=$((FAIL + 1))
-        return
-    fi
-
-    local expected_result
-    expected_result=$(echo "$result" | jq -r '.expected_result')
-
-    if [ "$expected_result" = "true" ]; then
-        echo "PASS"
-        PASS=$((PASS + 1))
-    else
-        echo "FAIL"
-        echo "$result"
-        FAIL=$((FAIL + 1))
-    fi
-}
-
 clear() {
     rm -f /tmp/mergesort_correctness /tmp/quicksort_correctness /tmp/bfs_correctness /tmp/dijkstra_correctness /tmp/matrix_correctness \
         /tmp/mergesort_benchmark /tmp/quicksort_benchmark /tmp/bfs_benchmark /tmp/dijkstra_benchmark /tmp/matrix_benchmark /tmp/overhead
@@ -251,18 +278,25 @@ case "$MODE" in
         run_test_overhead
         ;;
 
+    integration)
+        run_test_integration
+        ;;
+
     all)
         run_correctness_tests
         echo ""
         run_benchmark_tests
         echo ""
         run_test_overhead
+        echo ""
+        run_test_integration
         ;;
 
     *)
-        echo "Use: ./run_tests.sh all/correctness/benchmark/overhead size"
+        echo "Use: ./run_tests.sh all/integration/correctness/benchmark/overhead size"
         echo ""
         echo "./run_tests.sh"
+        echo "./run_tests.sh integration"
         echo "./run_tests.sh correctness"
         echo "./run_tests.sh benchmark medium"
         echo "./run_tests.sh overhead large"

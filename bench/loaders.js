@@ -41,14 +41,7 @@ export async function loadGraphData(size, root) {
         neighbors[offsets[startNode] + cursor[startNode]++] = to[i];
     }
 
-    return {
-        numOfNodes,
-        numOfEdges,
-        from,
-        to,
-        offsets,
-        neighbors
-    };
+    return { numOfNodes, numOfEdges, from, to, offsets, neighbors };
 }
 
 export async function loadWeightedGraphData(size, root) {
