@@ -21,6 +21,13 @@ async function testMergesort(wasm, label) {
         const jsResult = jsRunner.result();
         const wasmResult = wasmRunner.result();
 
+        if (verbose) {
+            console.log(`Mergesort (${label})`);
+            console.log(`JS Result: ${Array.from(jsResult)}`);
+            console.log(`WASM Result: ${Array.from(wasmResult)}`);
+            console.log(`Expected Result: ${Array.from(expected.arr)}`);
+        }
+
         const success = intArrayEqual(jsResult, expected.arr) &&
                         intArrayEqual(wasmResult, expected.arr) &&
                         intArrayEqual(jsResult, wasmResult);
@@ -47,6 +54,13 @@ async function testQuicksort(wasm, label) {
         wasmRunner.run();
         const jsResult = jsRunner.result();
         const wasmResult = wasmRunner.result();
+
+        if (verbose) {
+            console.log(`Quicksort (${label})`);
+            console.log(`JS Result: ${Array.from(jsResult)}`);
+            console.log(`WASM Result: ${Array.from(wasmResult)}`);
+            console.log(`Expected Result: ${Array.from(expected.arr)}`);
+        }
 
         const success = intArrayEqual(jsResult, expected.arr) &&
                         intArrayEqual(wasmResult, expected.arr) &&
@@ -78,6 +92,13 @@ async function testBFS(wasm, label) {
         const wasmResult = wasmRunner.result();
         const jsSummary = graphSummarize(jsResult);
         const wasmSummary = graphSummarize(wasmResult);
+
+        if (verbose) {
+            console.log(`BFS (${label})`);
+            console.log(`JS Result: visited: ${jsResult.visited}, distances: ${jsResult.dist}`);
+            console.log(`WASM Result: visited: ${wasmResult.visited}, distances: ${wasmResult.dist}`);
+            console.log(`Expected Result: distances: ${expected.dist}`);
+        }
 
         // JS & WASM reachable correct
         // JS & WASM max distance correct
@@ -127,6 +148,13 @@ async function testDijkstra(wasm, label) {
         const jsSummary = graphSummarize(jsResult);
         const wasmSummary = graphSummarize(wasmResult);
 
+        if (verbose) {
+            console.log(`Dijkstra (${label})`);
+            console.log(`JS Result: visited: ${jsResult.visited}, distances: ${jsResult.dist}`);
+            console.log(`WASM Result: visited: ${wasmResult.visited}, distances: ${wasmResult.dist}`);
+            console.log(`Expected Result: distances: ${expected.dist}`);
+        }
+
         // JS & WASM reachable correct
         // JS & WASM max distance correct
         // JS & WASM full distance array correct
@@ -173,6 +201,13 @@ async function testMatrixMultiplication(wasm, label) {
         const jsResult = jsRunner.result();
         const wasmResult = wasmRunner.result();
 
+        if (verbose) {
+            console.log(`Matrix Multiplication (${label})`);
+            console.log(`JS Result: ${Array.from(jsResult)}`);
+            console.log(`WASM Result: ${Array.from(wasmResult)}`);
+            console.log(`Expected Result: ${Array.from(expected.C)}`);
+        }
+
         const jsAsExpected = floatArrayEqual(jsResult, expected.C) && input.n === expected.n;
         const wasmAsExpected = floatArrayEqual(wasmResult, expected.C) && input.n === expected.n;
         const equal = floatArrayEqual(jsResult, wasmResult) && input.n === expected.n;
@@ -183,11 +218,12 @@ async function testMatrixMultiplication(wasm, label) {
             case: label,
             expected_result: success
         }));
-
     } finally {
         wasmRunner.free();
     }
 }
+
+const verbose = process.argv.includes("verbose=true") ? true : false;
 
 async function main() {
     const wasm = await initWasm();

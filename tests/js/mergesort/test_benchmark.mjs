@@ -1,7 +1,5 @@
 import { merge_sort } from '../../../src/js/sorting/mergesort.mjs';
-import { printArray } from '../../../src/js/utils/utils.mjs';
-import { isSorted } from '../../../src/js/utils/utils.mjs';
-import { arrayChecksum } from '../../../src/js/utils/utils.mjs';
+import { printArray, isSorted, arrayChecksum } from '../test_utils.mjs';
 import { loadSortData } from '../test_loaders.mjs';
 
 const size = process.argv[2] || 'small';

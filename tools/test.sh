@@ -47,7 +47,8 @@ run_test_benchmark() {
     local js_dir=$3
     local exec=$4
 
-    echo -n "$name benchmark ($SIZE): "
+    echo ""
+    echo "$name benchmark ($SIZE): "
 
     local c_output
     local js_output
@@ -94,7 +95,8 @@ run_test_correctness() {
     local js_dir=$3
     local exec=$4
 
-    echo -n "$name correctness:"
+    echo ""
+    echo "$name correctness:"
 
     local c_output
     local js_output
@@ -151,7 +153,7 @@ run_test_overhead() {
     compile_overhead_tests
 
     echo ""
-    echo -n "Overhead test ($SIZE): "
+    echo "Overhead test ($SIZE): "
 
     local output
     output=$(cd "../tests/c/overhead" && /tmp/overhead "$SIZE" 2>&1) || true
@@ -177,18 +179,19 @@ run_test_overhead() {
         echo "$result"
         FAIL=$((FAIL + 1))
     fi
+
+    echo "--------------------------------"
 }
 
 run_test_integration() {
 
-    echo ""
-    echo -n "Integration test"
+    echo "Integration test"
 
     local output
-    output=$(cd "../tests/integration" && node test_integration.mjs 2>&1) || true
+    output=$(cd "../tests/integration" && node test_bench_integration.mjs 2>&1) || true
 
     local result
-    results=$(extract_all_results "$output" || true)
+    result=$(extract_all_results "$output" || true)
 
     if [ -z "$result" ]; then
         echo "FAIL (Integration test produced no RESULT)"
@@ -204,6 +207,7 @@ run_test_integration() {
         return
     fi
 
+    echo "PASS"
     PASS=$((PASS + 1))
 }
 
@@ -244,6 +248,8 @@ run_correctness_tests() {
     run_test_correctness "BFS" "../tests/c/bfs" "../tests/js/bfs" "/tmp/bfs_correctness"
     run_test_correctness "Dijkstra" "../tests/c/dijkstra" "../tests/js/dijkstra" "/tmp/dijkstra_correctness"
     run_test_correctness "Matrix Multiplication" "../tests/c/matrix" "../tests/js/matrix" "/tmp/matrix_correctness"
+
+    echo "--------------------------------"
 }
 
 run_benchmark_tests() {
@@ -257,6 +263,8 @@ run_benchmark_tests() {
     run_test_benchmark "BFS" "../tests/c/bfs" "../tests/js/bfs" "/tmp/bfs_benchmark"
     run_test_benchmark "Dijkstra" "../tests/c/dijkstra" "../tests/js/dijkstra" "/tmp/dijkstra_benchmark"
     run_test_benchmark "Matrix Multiplication" "../tests/c/matrix" "../tests/js/matrix" "/tmp/matrix_benchmark"
+
+    echo "--------------------------------"
 }
 
 clear() {
@@ -284,11 +292,8 @@ case "$MODE" in
 
     all)
         run_correctness_tests
-        echo ""
         run_benchmark_tests
-        echo ""
         run_test_overhead
-        echo ""
         run_test_integration
         ;;
 
@@ -305,8 +310,9 @@ case "$MODE" in
         ;;
 esac
 
-echo
+echo "--------------------------------"
 echo "$PASS passed, $FAIL failed"
+echo "--------------------------------"
 
 if [ "$FAIL" -ne 0 ]; then
     exit 1

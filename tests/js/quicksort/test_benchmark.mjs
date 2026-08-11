@@ -1,12 +1,10 @@
 import { quick_sort } from '../../../src/js/sorting/quicksort.mjs';
-import { printArray } from '../test_utils.mjs';
-import { isSorted } from '../test_utils.mjs';
-import { arrayChecksum } from '../../../src/js/utils/utils.mjs';
+import { printArray, isSorted, arrayChecksum } from '../test_utils.mjs';
 import { loadSortData } from '../test_loaders.mjs';
 
 const size = process.argv[2] || 'small';
 const path = `../../../datasets/benchmark/sorting/${size}.bin`;
-const sortData = loadSortData(inputPath);
+const sortData = loadSortData(path);
 
 const n = sortData.n;
 const original = sortData.arr.slice();

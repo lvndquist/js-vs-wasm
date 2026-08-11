@@ -1,12 +1,12 @@
 import { dijkstra } from '../../../src/js/graphs/dijkstra.mjs';
-import { loadWeightedGraphData, loadExpectedWeightedGraph } from './test_loaders.mjs';
-import { graphSummarize } from './test_utils.mjs';
+import { loadWeightedGraphData, loadExpectedWeightedGraphData } from '../test_loaders.mjs';
+import { graphSummarize } from '../test_utils.mjs';
 
 const INFINITY = 1e18;
 
 function runCase(label, inputPath, expectedPath) {
     const graphData = loadWeightedGraphData(inputPath);
-    const expected = loadExpectedWeightedGraph(expectedPath);
+    const expected = loadExpectedWeightedGraphData(expectedPath);
 
     console.log(`Dijkstra (${label})`);
     console.log(`Loaded: ${graphData.numOfNodes} nodes, ${graphData.numOfEdges} edges`);

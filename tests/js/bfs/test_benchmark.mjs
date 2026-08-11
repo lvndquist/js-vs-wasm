@@ -3,7 +3,7 @@ import { loadGraphData } from '../test_loaders.mjs';
 import { graphSummarize } from '../test_utils.mjs';
 
 const size = process.argv[2] || 'small';
-const path = `../../../datasets/benchmark/graphs_weighted/${size}.bin`;
+const path = `../../../datasets/benchmark/graphs/${size}.bin`;
 
 const graphData = loadGraphData(path);
 const numOfNodes = graphData.numOfNodes;

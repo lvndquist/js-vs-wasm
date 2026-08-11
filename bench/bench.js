@@ -30,19 +30,46 @@ function runBenchmark(func) {
         const end = performance.now();
         times.push(end - start);
     }
+
     return times;
+}
+
+function runJSBenchmark(runner, algo, size, results) {
+    const startTotal = performance.now();
+    const times = runBenchmark(() => {
+        runner.run();
+    });
+    const endTotal = performance.now();
+
+    results.push({ algorithm: algo, implementation: 'js', size, times: times });
+    console.log(`JS. Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`)
+}
+
+function runWASMBenchmark(runner, algo, size, results) {
+    let total;
+    let times;
+    try {
+        const start = performance.now();
+        times = runBenchmark(() => {
+            runner.run();
+        });
+        total = start - performance.now();
+    } finally {
+        runner.free();
+    }
+
+    results.push({ algorithm: algo, implementation: 'wasm', size, times: times });
+    console.log(`WASM. Size: ${size}. Total time: ${total.toFixed(1)}ms`);
 }
 
 async function runAllBenchmarks() {
     const results = [];
-    let startTotal = null;
-    let endTotal = null;
     cancel = false;
 
     console.log("Loadin WASM modules");
     const wasm = await initWasm();
 
-    // Sorting
+    // Mergesort
     for (const size of SIZES) {
         if (cancel) {
             console.log("Cancelling...");
@@ -58,68 +85,34 @@ async function runAllBenchmarks() {
 
         // run mergesort js
         console.log(`Running JS mergesort on ${size}...`);
-        const jsMergesortRunner = jsMergesort(arr, n);
-
-        startTotal = performance.now();
-        const mergesortJSTimes = runBenchmark(() => {
-            jsMergesortRunner.run();
-        });
-        endTotal = performance.now();
-
-        results.push({ algorithm: 'mergesort', implementation: 'js', size, times: mergesortJSTimes });
-        console.log(`JS. Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`)
+        runJSBenchmark(jsMergesort(arr, n), 'mergesort', size, results);
 
         // run mergesort wasm
         console.log(`Running WASM mergesort on ${size}...`);
-        const wasmMergesortRunner = wasmMergesort(wasm.mergeSortModule, arr, n);
+        runWASMBenchmark(wasmMergesort(wasm.mergeSortModule, arr, n), 'mergesort', size, results);
+    }
 
-        let mergesortWasmTimes;
-        startTotal = performance.now();
-        try {
-            mergesortWasmTimes = runBenchmark(() => {
-                wasmMergesortRunner.run();
-            });
-        } finally {
-            wasmMergesortRunner.free();
+    // Quicksort
+    for (const size of SIZES) {
+        if (cancel) {
+            console.log("Cancelling...");
+            return results;
         }
-        endTotal = performance.now();
 
-        results.push({ algorithm: 'mergesort', implementation: 'wasm', size, times: mergesortWasmTimes });
-        console.log(`WASM. Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`);
+        console.log(`Loading sorting data. Size: ${size}...`);
+        const {n, arr} = await loadSortData(size, DATA_ROOT);
 
         // validate quicksort
         console.log(`Validating quicksort for size: ${size}...`);
-        validateQuicksort(wasm, arr.slice(), n, size);
+        validateQuicksort(wasm, arr, n, size);
 
         // run quicksort js
         console.log(`Running JS quicksort on ${size}...`);
-        const jsQuicksortRunner = jsQuicksort(arr, n);
-
-        startTotal = performance.now();
-        const quicksortJSTimes = runBenchmark(() => {
-            jsQuicksortRunner.run();
-        });
-        endTotal = performance.now();
-
-        results.push({ algorithm: 'quicksort', implementation: 'js', size, times: quicksortJSTimes });
-        console.log(`JS. Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`);
+        runJSBenchmark(jsQuicksort(arr, n), 'quicksort', size, results);
 
         // run quicksort wasm
         console.log(`Running WASM quicksort on ${size}...`);
-        const wasmQuicksortRunner = wasmQuicksort(wasm.quickSortModule, arr, n);
-
-        let quicksortWasmTimes;
-        startTotal = performance.now();
-        try {
-            quicksortWasmTimes = runBenchmark(() => {
-                wasmQuicksortRunner.run();
-            });
-        } finally {
-            wasmQuicksortRunner.free();
-        }
-        endTotal = performance.now();
-        results.push({ algorithm: 'quicksort', implementation: 'wasm', size, times: quicksortWasmTimes });
-        console.log(`WASM. Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`);
+        runWASMBenchmark(wasmQuicksort(wasm.quickSortModule, arr, n), 'quicksort', size, results);
     }
 
     // Graphing (BFS)
@@ -138,34 +131,11 @@ async function runAllBenchmarks() {
 
         // run BFS js
         console.log(`Running JS bfs on ${size}...`);
-        const jsBFSRunner = jsBFS(graphData);
-
-        startTotal = performance.now();
-        const bfsJSTimes = runBenchmark(() => {
-            jsBFSRunner.run();
-        });
-        endTotal = performance.now();
-
-        results.push({ algorithm: 'bfs', implementation: 'js', size, times: bfsJSTimes });
-        console.log(`JS. Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`);
+        runJSBenchmark(jsBFS(graphData), 'bfs', size, results);
 
         // run BFS wasm
         console.log(`Running WASM bfs on ${size}...`);
-        const wasmBFSRunner = wasmBFS(wasm.bfsModule, graphData);
-
-        let bfsWasmTimes;
-        startTotal = performance.now();
-        try {
-            bfsWasmTimes = runBenchmark(() => {
-                wasmBFSRunner.run();
-            });
-        } finally {
-            wasmBFSRunner.free();
-        }
-        endTotal = performance.now();
-
-        results.push({ algorithm: 'bfs', implementation: 'wasm', size, times: bfsWasmTimes });
-        console.log(`WASM. Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`);
+        runWASMBenchmark(wasmBFS(wasm.bfsModule, graphData), 'bfs', size, results);
     }
 
     // Graph (Dijkstra)
@@ -184,34 +154,11 @@ async function runAllBenchmarks() {
 
         // run Dijkstra js
         console.log(`Running JS dijkstra on ${size}...`);
-        const jsDijkstraRunner = jsDijkstra(weightedGraphData);
-
-        startTotal = performance.now();
-        const dijkstraJSTimes = runBenchmark(() => {
-            jsDijkstraRunner.run();
-        });
-        endTotal = performance.now();
-
-        results.push({ algorithm: 'dijkstra', implementation: 'js', size, times: dijkstraJSTimes });
-        console.log(`JS. Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`);
+        runJSBenchmark(jsDijkstra(weightedGraphData), 'dijkstra', size, results);
 
         // run Dijkstra wasm
         console.log(`Running WASM dijkstra on ${size}...`);
-        const wasmDijkstraRunner = wasmDijkstra(wasm.dijkstraModule, weightedGraphData);
-
-        let dijkstraWasmTimes;
-        startTotal = performance.now();
-        try {
-            dijkstraWasmTimes = runBenchmark(() => {
-                wasmDijkstraRunner.run();
-            });
-        } finally {
-            wasmDijkstraRunner.free();
-        }
-        endTotal = performance.now();
-
-        results.push({ algorithm: 'dijkstra', implementation: 'wasm', size, times: dijkstraWasmTimes });
-        console.log(`WASM. Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`);
+        runWASMBenchmark(wasmDijkstra(wasm.dijkstraModule, weightedGraphData), 'dijkstra', size, results);
     }
 
     // Matrix multiplication
@@ -230,34 +177,11 @@ async function runAllBenchmarks() {
 
         // run matrix multiplication js
         console.log(`Running JS matrix multiplication on ${size}...`);
-        const jsMatrixMultiplicationRunner = jsMatrixMultiplication(A, B, n);
-
-        startTotal = performance.now();
-        const matrixMultiplicationJSTimes = runBenchmark(() => {
-            jsMatrixMultiplicationRunner.run();
-        });
-        endTotal = performance.now();
-
-        results.push({ algorithm: 'matrix_multiplication', implementation: 'js', size, times: matrixMultiplicationJSTimes });
-        console.log(`JS. Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`);
+        runJSBenchmark(jsMatrixMultiplication(A, B, n), 'matrix_multiplication', size, results);
 
         // run matrix multiplication wasm
         console.log(`Running WASM matrix multiplication on ${size}...`);
-        const wasmMatrixMultiplicationRunner = wasmMatrixMultiplication(wasm.matrixModule, A, B, n);
-        
-        let matrixMultiplicationWasmTimes;
-        startTotal = performance.now();
-        try {
-            matrixMultiplicationWasmTimes = runBenchmark(() => {
-                wasmMatrixMultiplicationRunner.run();
-            });
-        } finally {
-            wasmMatrixMultiplicationRunner.free();
-        }
-        endTotal = performance.now();
-
-        results.push({ algorithm: 'matrix_multiplication', implementation: 'wasm', size, times: matrixMultiplicationWasmTimes });
-        console.log(`WASM. Size: ${size}. Total time: ${(endTotal - startTotal).toFixed(1)}ms`);
+        runWASMBenchmark(wasmMatrixMultiplication(wasm.matrixModule, A, B, n), 'matrix_multiplication', size, results);
     }
     
     console.log("Finished");

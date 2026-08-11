@@ -1,10 +1,10 @@
 import { loadMatrixData } from '../test_loaders.mjs';
 import { matrix_multiplication } from '../../../src/js/numeric/matrix_multiplication.mjs';
-import { matrixChecksum } from '../../../src/js/utils/utils.mjs';
+import { matrixChecksum } from '../test_utils.mjs';
 
 const size = process.argv[2] || 'small';
 const path = `../../../datasets/benchmark/matrix/${size}.bin`;
-const matrixData = loadMatrixData(inputPath);
+const matrixData = loadMatrixData(path);
 
 const n = matrixData.n;
 
